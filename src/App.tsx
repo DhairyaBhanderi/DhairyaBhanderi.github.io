@@ -10,7 +10,6 @@ import CustomCursor from "./components/CustomCursor";
 import PageTransition from "./components/PageTransition";
 import { ScrollVelocityProvider } from "./components/ScrollVelocity";
 import { ReducedMotionProvider } from "./components/ReducedMotion";
-import EasterEggProvider from "./components/EasterEgg";
 
 const queryClient = new QueryClient();
 
@@ -18,24 +17,22 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ReducedMotionProvider>
-        <EasterEggProvider>
-          <Toaster />
-          <Sonner />
-          <SmoothScroll>
-            <ScrollVelocityProvider>
-              <CustomCursor />
-              <BrowserRouter>
-                <PageTransition>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </PageTransition>
-              </BrowserRouter>
-            </ScrollVelocityProvider>
-          </SmoothScroll>
-        </EasterEggProvider>
+        <Toaster />
+        <Sonner />
+        <SmoothScroll>
+          <ScrollVelocityProvider>
+            <CustomCursor />
+            <BrowserRouter>
+              <PageTransition>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </PageTransition>
+            </BrowserRouter>
+          </ScrollVelocityProvider>
+        </SmoothScroll>
       </ReducedMotionProvider>
     </TooltipProvider>
   </QueryClientProvider>
