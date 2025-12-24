@@ -7,6 +7,7 @@ import ImmersiveHero from "@/components/ImmersiveHero";
 import ManifestoSection from "@/components/ManifestoSection";
 import HorizontalGallery from "@/components/HorizontalGallery";
 import SkillsGrid from "@/components/SkillsGrid";
+import CertificationsSection from "@/components/CertificationsSection";
 import ExperienceStack from "@/components/ExperienceStack";
 import ContactFinale from "@/components/ContactFinale";
 
@@ -31,6 +32,7 @@ const Index = () => {
           <ManifestoSection />
           <HorizontalGallery />
           <SkillsGrid />
+          <CertificationsSection />
           <ExperienceStack />
           <ContactFinale />
         </main>
