@@ -7,20 +7,33 @@ interface RevealPreloaderProps {
 
 export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
   const [phase, setPhase] = useState<"loading" | "reveal" | "done">("loading");
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Phase 1: Show initials
+    // Animate progress counter
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 25);
+
+    // Phase 1: Show initials (extended duration)
     const loadTimer = setTimeout(() => {
       setPhase("reveal");
-    }, 800);
+    }, 1400);
 
     // Phase 2: Reveal (wipe away)
     const revealTimer = setTimeout(() => {
       setPhase("done");
       onComplete();
-    }, 1500);
+    }, 2200);
 
     return () => {
+      clearInterval(progressInterval);
       clearTimeout(loadTimer);
       clearTimeout(revealTimer);
     };
@@ -29,25 +42,28 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
   const letterVariants = {
     hidden: {
       opacity: 0,
-      y: 50,
+      y: 80,
       rotateX: -90,
+      scale: 0.8,
     },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
       rotateX: 0,
+      scale: 1,
       transition: {
-        delay: i * 0.1,
-        duration: 0.5,
+        delay: i * 0.15,
+        duration: 0.7,
         ease: [0.215, 0.61, 0.355, 1] as const,
       },
     }),
     exit: (i: number) => ({
       opacity: 0,
-      y: -30,
+      y: -50,
+      scale: 1.1,
       transition: {
-        delay: i * 0.05,
-        duration: 0.3,
+        delay: i * 0.08,
+        duration: 0.4,
       },
     }),
   };
@@ -57,7 +73,7 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
     exit: {
       scaleY: 0,
       transition: {
-        duration: 0.8,
+        duration: 1,
         ease: [0.645, 0.045, 0.355, 1] as const,
       },
     },
@@ -70,7 +86,7 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
           className="fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
         >
           {/* Top overlay */}
           <motion.div
@@ -88,9 +104,9 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
             animate={phase === "reveal" ? "exit" : "initial"}
           />
 
-          {/* Center content - Initials */}
-          <div className="relative z-10 perspective-1000">
-            <div className="flex items-center justify-center gap-1">
+          {/* Center content - Initials with 3D effect */}
+          <div className="relative z-10" style={{ perspective: "1200px" }}>
+            <div className="flex items-center justify-center gap-2 md:gap-4">
               {["D", "B"].map((letter, i) => (
                 <motion.span
                   key={letter}
@@ -98,63 +114,90 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
                   variants={letterVariants}
                   initial="hidden"
                   animate={phase === "loading" ? "visible" : "exit"}
-                  className="font-display text-[20vw] md:text-[15vw] font-bold text-gradient-copper inline-block"
+                  className="relative font-display text-[25vw] md:text-[18vw] font-bold inline-block"
                   style={{
-                    textShadow: "0 0 100px hsl(var(--accent) / 0.5)",
+                    transformStyle: "preserve-3d",
                   }}
                 >
-                  {letter}
+                  {/* Main letter with gradient */}
+                  <span className="text-gradient-copper text-glow-lg">
+                    {letter}
+                  </span>
+
+                  {/* 3D shadow/extrusion effect */}
+                  <span 
+                    className="absolute inset-0 text-foreground/5"
+                    style={{
+                      transform: "translateZ(-20px) translateX(4px) translateY(4px)",
+                    }}
+                  >
+                    {letter}
+                  </span>
                 </motion.span>
               ))}
             </div>
 
-            {/* Loading line */}
+            {/* Progress counter */}
             <motion.div
-              className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-px bg-accent/50 overflow-hidden"
-              initial={{ width: 0 }}
-              animate={{ width: phase === "loading" ? "60%" : "100%" }}
-              transition={{
-                duration: phase === "loading" ? 0.8 : 0.3,
-                ease: "easeOut",
-              }}
+              className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: phase === "loading" ? 1 : 0 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
             >
-              <motion.div
-                className="h-full bg-accent"
-                initial={{ x: "-100%" }}
-                animate={{ x: "100%" }}
-                transition={{
-                  duration: 0.8,
-                  repeat: phase === "loading" ? Infinity : 0,
-                  ease: "linear",
-                }}
-              />
+              <span className="font-mono text-sm text-accent">
+                {progress.toString().padStart(3, '0')}%
+              </span>
+              
+              {/* Loading bar */}
+              <div className="w-32 h-px bg-muted/30 overflow-hidden">
+                <motion.div
+                  className="h-full bg-accent"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.1 }}
+                />
+              </div>
             </motion.div>
           </div>
 
-          {/* Corner decorations */}
+          {/* Corner decorations with enhanced animation */}
           <motion.div
-            className="absolute top-8 left-8 w-16 h-px bg-accent/30"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            className="absolute top-10 left-10 w-20 h-px bg-accent/40"
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
           />
           <motion.div
-            className="absolute top-8 left-8 w-px h-16 bg-accent/30"
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            className="absolute top-10 left-10 w-px h-20 bg-accent/40"
+            initial={{ scaleY: 0, opacity: 0 }}
+            animate={{ scaleY: 1, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
           />
           <motion.div
-            className="absolute bottom-8 right-8 w-16 h-px bg-accent/30"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            className="absolute bottom-10 right-10 w-20 h-px bg-accent/40"
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
           />
           <motion.div
-            className="absolute bottom-8 right-8 w-px h-16 bg-accent/30"
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            className="absolute bottom-10 right-10 w-px h-20 bg-accent/40"
+            initial={{ scaleY: 0, opacity: 0 }}
+            animate={{ scaleY: 1, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          />
+
+          {/* Additional accent dots */}
+          <motion.div
+            className="absolute top-10 right-10 w-2 h-2 rounded-full bg-accent/60"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.4, type: "spring" }}
+          />
+          <motion.div
+            className="absolute bottom-10 left-10 w-2 h-2 rounded-full bg-accent/60"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.4, type: "spring" }}
           />
         </motion.div>
       )}

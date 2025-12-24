@@ -9,6 +9,7 @@ interface LetterProps {
   mouseY: number;
   containerRect: DOMRect | null;
   scrollProgress: number;
+  isLastName?: boolean;
 }
 
 const FragmentedLetter = ({
@@ -19,13 +20,12 @@ const FragmentedLetter = ({
   mouseY,
   containerRect,
   scrollProgress,
+  isLastName = false,
 }: LetterProps) => {
-  // Random initial positions for each letter
   const randomX = useRef((Math.random() - 0.5) * 200);
   const randomY = useRef((Math.random() - 0.5) * 200);
   const randomRotate = useRef((Math.random() - 0.5) * 90);
 
-  // Calculate displacement based on mouse proximity
   const [displacement, setDisplacement] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -37,10 +37,10 @@ const FragmentedLetter = ({
     const deltaX = mouseX - letterCenterX;
     const deltaY = mouseY - letterCenterY;
     const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-    const maxDistance = 200;
+    const maxDistance = 250;
 
     if (distance < maxDistance) {
-      const force = (1 - distance / maxDistance) * 30;
+      const force = (1 - distance / maxDistance) * 40;
       setDisplacement({
         x: -(deltaX / distance) * force,
         y: -(deltaY / distance) * force,
@@ -50,21 +50,20 @@ const FragmentedLetter = ({
     }
   }, [mouseX, mouseY, containerRect, index, totalLetters]);
 
-  // Scroll-based explosion effect
-  const explodeX = scrollProgress * randomX.current * 5;
-  const explodeY = scrollProgress * randomY.current * 5;
-  const explodeRotate = scrollProgress * randomRotate.current * 3;
-  const explodeOpacity = 1 - scrollProgress * 1.5;
-  const explodeScale = 1 - scrollProgress * 0.5;
+  const explodeX = scrollProgress * randomX.current * 6;
+  const explodeY = scrollProgress * randomY.current * 6;
+  const explodeRotate = scrollProgress * randomRotate.current * 4;
+  const explodeOpacity = 1 - scrollProgress * 1.8;
+  const explodeScale = 1 - scrollProgress * 0.6;
 
   return (
     <motion.span
       initial={{
         opacity: 0,
-        x: randomX.current * 3,
-        y: randomY.current * 3,
+        x: randomX.current * 4,
+        y: randomY.current * 4,
         rotate: randomRotate.current,
-        scale: 0.5,
+        scale: 0.3,
       }}
       animate={{
         opacity: Math.max(0, explodeOpacity),
@@ -75,13 +74,13 @@ const FragmentedLetter = ({
       }}
       transition={{
         type: "spring",
-        damping: 20,
-        stiffness: 150,
-        delay: index * 0.03,
+        damping: 25,
+        stiffness: 120,
+        delay: index * 0.025,
       }}
-      className="inline-block will-change-transform"
+      className={`inline-block will-change-transform ${isLastName ? 'text-stroke-accent' : ''}`}
       style={{
-        textShadow: scrollProgress < 0.3 ? "0 0 80px hsl(var(--copper) / 0.4)" : "none",
+        textShadow: scrollProgress < 0.2 ? "0 0 100px hsl(var(--copper) / 0.5)" : "none",
       }}
     >
       {letter}
@@ -150,62 +149,67 @@ export const ImmersiveHero = () => {
   return (
     <section
       ref={containerRef}
-      className="relative min-h-[120vh] flex flex-col items-center justify-center overflow-hidden"
+      className="relative min-h-[130vh] flex flex-col items-center justify-center overflow-hidden"
     >
-      {/* Dynamic gradient background following mouse */}
+      {/* Dynamic gradient background */}
       <motion.div
-        className="absolute inset-0 opacity-70"
+        className="absolute inset-0 opacity-80"
         style={{
           background: useTransform(
             [gradientX, gradientY],
             ([gx, gy]) =>
-              `radial-gradient(ellipse 80% 60% at ${gx}% ${gy}%, hsl(var(--copper) / 0.2) 0%, transparent 60%)`
+              `radial-gradient(ellipse 90% 70% at ${gx}% ${gy}%, hsl(var(--copper) / 0.2) 0%, transparent 50%),
+               radial-gradient(ellipse 60% 40% at ${100 - Number(gx)}% ${100 - Number(gy)}%, hsl(var(--deep-blue) / 0.1) 0%, transparent 50%)`
           ),
         }}
       />
 
       {/* Animated grid lines */}
-      <div className="absolute inset-0 overflow-hidden opacity-10">
+      <div className="absolute inset-0 overflow-hidden opacity-[0.06]">
         <motion.div
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(hsl(var(--accent) / 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--accent) / 0.3) 1px, transparent 1px)
+              linear-gradient(hsl(var(--accent) / 0.5) 1px, transparent 1px),
+              linear-gradient(90deg, hsl(var(--accent) / 0.5) 1px, transparent 1px)
             `,
-            backgroundSize: "100px 100px",
+            backgroundSize: "120px 120px",
           }}
           animate={{
-            backgroundPosition: ["0px 0px", "100px 100px"],
+            backgroundPosition: ["0px 0px", "120px 120px"],
           }}
           transition={{
-            duration: 20,
+            duration: 25,
             repeat: Infinity,
             ease: "linear",
           }}
         />
       </div>
 
-      {/* Noise texture overlay */}
-      <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
+      {/* Noise texture overlay - animated pulse */}
+      <motion.div 
+        className="absolute inset-0 opacity-[0.025] mix-blend-overlay bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]"
+        animate={{ opacity: [0.02, 0.04, 0.02] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
 
       {/* Main content */}
       <div className="relative z-10 text-center px-4">
-        {/* Role - small, above name */}
+        {/* Role - refined */}
         <motion.span
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.6 }}
-          className="block text-xs md:text-sm tracking-[0.4em] text-muted-foreground font-body uppercase mb-8"
+          transition={{ delay: 1.5, duration: 0.8 }}
+          className="block text-xs md:text-sm tracking-[0.5em] text-accent font-mono uppercase mb-10"
         >
           AI Automation Engineer
         </motion.span>
 
-        {/* Fragmented Name */}
-        <div className="relative perspective-1000">
-          <h1 className="font-display font-bold leading-[0.85] tracking-tight select-none">
-            {/* First name */}
-            <span className="block text-[14vw] md:text-[11vw] text-foreground overflow-visible">
+        {/* Fragmented Name - Massive typography */}
+        <div className="relative" style={{ perspective: "1500px" }}>
+          <h1 className="font-display font-bold leading-[0.8] tracking-[-0.04em] select-none">
+            {/* First name - solid */}
+            <span className="block text-fluid-hero text-foreground overflow-visible">
               {firstName.split("").map((letter, i) => (
                 <FragmentedLetter
                   key={`first-${i}`}
@@ -220,8 +224,8 @@ export const ImmersiveHero = () => {
               ))}
             </span>
 
-            {/* Last name - with gradient */}
-            <span className="block text-[14vw] md:text-[11vw] text-gradient-copper overflow-visible">
+            {/* Last name - with text-stroke effect */}
+            <span className="block text-fluid-hero overflow-visible">
               {lastName.split("").map((letter, i) => (
                 <FragmentedLetter
                   key={`last-${i}`}
@@ -232,6 +236,7 @@ export const ImmersiveHero = () => {
                   mouseY={mousePos.y}
                   containerRect={containerRect}
                   scrollProgress={scrollValue}
+                  isLastName={true}
                 />
               ))}
             </span>
@@ -242,31 +247,64 @@ export const ImmersiveHero = () => {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 - scrollValue }}
-          transition={{ delay: 1.8, duration: 0.8 }}
-          className="mt-12 text-muted-foreground font-body text-sm md:text-base max-w-md mx-auto"
+          transition={{ delay: 2, duration: 1 }}
+          className="mt-16 text-muted-foreground font-body text-sm md:text-base max-w-lg mx-auto"
         >
-          Building intelligent systems that scale
+          Building intelligent systems that scale from prototype to production
         </motion.p>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll indicator - more dramatic */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 - scrollValue * 2 }}
-        transition={{ delay: 2.2, duration: 0.6 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2"
+        transition={{ delay: 2.5, duration: 0.8 }}
+        className="absolute bottom-16 left-1/2 -translate-x-1/2"
       >
         <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-2"
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          className="flex flex-col items-center gap-3"
         >
-          <span className="text-xs text-muted-foreground/50 tracking-widest uppercase font-body">
+          <span className="text-[10px] text-muted-foreground/50 tracking-[0.4em] uppercase font-mono">
             Scroll
           </span>
-          <div className="w-px h-12 bg-gradient-to-b from-accent/50 to-transparent" />
+          <div className="relative">
+            <div className="w-px h-16 bg-gradient-to-b from-accent/60 to-transparent" />
+            <motion.div
+              className="absolute top-0 left-0 w-px h-4 bg-accent"
+              animate={{ y: [0, 48, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
         </motion.div>
       </motion.div>
+
+      {/* Corner accents */}
+      <motion.div
+        className="absolute top-8 left-8 w-16 h-px bg-accent/30"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 2, duration: 0.8 }}
+      />
+      <motion.div
+        className="absolute top-8 left-8 w-px h-16 bg-accent/30"
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: 1 }}
+        transition={{ delay: 2, duration: 0.8 }}
+      />
+      <motion.div
+        className="absolute bottom-8 right-8 w-16 h-px bg-accent/30"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 2.2, duration: 0.8 }}
+      />
+      <motion.div
+        className="absolute bottom-8 right-8 w-px h-16 bg-accent/30"
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: 1 }}
+        transition={{ delay: 2.2, duration: 0.8 }}
+      />
     </section>
   );
 };
