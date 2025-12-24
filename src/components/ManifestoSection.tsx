@@ -8,57 +8,75 @@ gsap.registerPlugin(ScrollTrigger);
 const statements = [
   {
     text: "I architect systems where AI meets reliability.",
+    highlight: ["AI", "reliability"],
     bgClass: "bg-background",
   },
   {
     text: "From prototype to production, I build what lasts.",
-    bgClass: "bg-secondary/50",
+    highlight: ["prototype", "production", "lasts"],
+    bgClass: "bg-secondary/30",
   },
   {
     text: "Automation that empowers, not replaces.",
+    highlight: ["empowers", "replaces"],
     bgClass: "bg-background",
   },
 ];
 
-const SplitText = ({ text, isActive }: { text: string; isActive: boolean }) => {
+const WordReveal = ({ 
+  text, 
+  highlights,
+  isActive 
+}: { 
+  text: string; 
+  highlights: string[];
+  isActive: boolean;
+}) => {
+  const words = text.split(" ");
+
   return (
     <motion.h2 
-      className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-center leading-tight tracking-tight max-w-5xl"
+      className="font-display text-fluid-statement text-center leading-tight tracking-tight max-w-5xl"
       initial={{ opacity: 0 }}
       animate={{ opacity: isActive ? 1 : 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.3 }}
     >
-      {text.split(" ").map((word, wordIndex) => (
-        <span key={wordIndex} className="inline-block mr-[0.25em]">
-          {word.split("").map((char, charIndex) => (
+      {words.map((word, wordIndex) => {
+        const isHighlight = highlights.some(h => 
+          word.toLowerCase().includes(h.toLowerCase())
+        );
+        const cleanWord = word.replace(/[.,!?]/g, '');
+        const punctuation = word.match(/[.,!?]/g)?.[0] || '';
+
+        return (
+          <span key={wordIndex} className="inline-block mr-[0.3em] overflow-hidden">
             <motion.span
-              key={`${wordIndex}-${charIndex}`}
-              className="inline-block"
-              initial={{ opacity: 0, y: 50, rotateX: -90 }}
+              className={`inline-block ${isHighlight ? 'text-accent text-glow' : 'text-foreground'}`}
+              initial={{ y: 100, opacity: 0, rotateX: -45 }}
               animate={isActive ? { 
-                opacity: 1, 
                 y: 0, 
+                opacity: 1, 
                 rotateX: 0 
               } : { 
+                y: 100, 
                 opacity: 0, 
-                y: 50, 
-                rotateX: -90 
+                rotateX: -45 
               }}
               transition={{
-                duration: 0.4,
-                delay: isActive ? (wordIndex * 0.1) + (charIndex * 0.02) : 0,
-                ease: [0.4, 0, 0.2, 1],
+                duration: 0.6,
+                delay: isActive ? wordIndex * 0.08 : 0,
+                ease: [0.25, 0.46, 0.45, 0.94],
               }}
-              style={{
-                transformStyle: "preserve-3d",
-                color: wordIndex % 3 === 1 ? "hsl(var(--accent))" : "hsl(var(--foreground))",
-              }}
+              style={{ transformStyle: "preserve-3d" }}
             >
-              {char}
+              {cleanWord}
+              {punctuation && (
+                <span className="text-muted-foreground">{punctuation}</span>
+              )}
             </motion.span>
-          ))}
-        </span>
-      ))}
+          </span>
+        );
+      })}
     </motion.h2>
   );
 };
@@ -72,7 +90,7 @@ export const ManifestoSection = () => {
     offset: ["start start", "end end"],
   });
 
-  // Map scroll progress to statement index
+  // Extended scroll duration: 150vh per statement = 450vh total
   const statementProgress = useTransform(scrollYProgress, [0, 1], [0, statements.length]);
 
   useEffect(() => {
@@ -90,77 +108,134 @@ export const ManifestoSection = () => {
       ref={containerRef}
       id="manifesto"
       className="relative"
-      style={{ height: `${statements.length * 100}vh` }}
+      style={{ height: `${statements.length * 150}vh` }} // Extended from 100vh to 150vh per statement
     >
       {/* Sticky container */}
       <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Background layers with CSS transitions instead of GSAP */}
+        {/* Background layers */}
         {statements.map((statement, index) => (
-          <div
+          <motion.div
             key={index}
-            className={`absolute inset-0 transition-opacity duration-700 ${statement.bgClass}`}
-            style={{ opacity: activeIndex === index ? 1 : 0 }}
+            className={`absolute inset-0 ${statement.bgClass}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: activeIndex === index ? 1 : 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
           />
         ))}
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-transparent to-background/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/60 pointer-events-none" />
         
-        {/* Floating decorative elements */}
+        {/* Parallax floating elements */}
         <motion.div 
-          className="absolute top-20 left-[10%] w-32 h-32 border border-accent/20 rounded-full opacity-30"
+          className="absolute top-[15%] left-[8%] w-40 h-40 border border-accent/10 rounded-full opacity-20"
+          style={{ y: useTransform(scrollYProgress, [0, 1], [0, -150]) }}
+        />
+        <motion.div 
+          className="absolute bottom-[20%] right-[10%] w-32 h-32 bg-accent/5 rounded-lg opacity-30"
+          style={{ 
+            y: useTransform(scrollYProgress, [0, 1], [0, 200]), 
+            rotate: useTransform(scrollYProgress, [0, 1], [0, 60]) 
+          }}
+        />
+        <motion.div 
+          className="absolute top-[40%] right-[5%] w-1 h-48 bg-gradient-to-b from-accent/30 to-transparent"
           style={{ y: useTransform(scrollYProgress, [0, 1], [0, -100]) }}
         />
         <motion.div 
-          className="absolute bottom-32 right-[15%] w-24 h-24 bg-accent/10 rounded-lg opacity-40"
-          style={{ y: useTransform(scrollYProgress, [0, 1], [0, 150]), rotate: useTransform(scrollYProgress, [0, 1], [0, 45]) }}
+          className="absolute bottom-[30%] left-[6%] w-20 h-20 border-2 border-muted/20 rotate-45"
+          style={{ y: useTransform(scrollYProgress, [0, 1], [0, 150]) }}
+        />
+        {/* Additional decorative elements */}
+        <motion.div 
+          className="absolute top-[25%] left-[40%] w-2 h-2 rounded-full bg-accent/40"
+          style={{ 
+            y: useTransform(scrollYProgress, [0, 1], [0, -80]),
+            opacity: useTransform(scrollYProgress, [0, 0.5, 1], [0.4, 0.8, 0.4])
+          }}
         />
         <motion.div 
-          className="absolute top-1/3 right-[8%] w-2 h-32 bg-gradient-to-b from-accent/30 to-transparent"
-          style={{ y: useTransform(scrollYProgress, [0, 1], [0, -80]) }}
-        />
-        <motion.div 
-          className="absolute bottom-1/4 left-[12%] w-16 h-16 border-2 border-muted/30 rotate-45"
-          style={{ y: useTransform(scrollYProgress, [0, 1], [0, 100]) }}
+          className="absolute bottom-[40%] right-[30%] w-24 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"
+          style={{ x: useTransform(scrollYProgress, [0, 1], [-50, 50]) }}
         />
 
         {/* Content container */}
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="container mx-auto px-6 md:px-12">
+        <div className="relative z-10 h-full flex items-center justify-center px-6 md:px-12">
+          <div className="container mx-auto">
             {statements.map((statement, index) => (
               <div
                 key={index}
                 className={`absolute inset-0 flex items-center justify-center px-6 md:px-12 ${
                   index === activeIndex ? "pointer-events-auto" : "pointer-events-none"
                 }`}
-                style={{ perspective: "1000px" }}
+                style={{ perspective: "1200px" }}
               >
-                <SplitText text={statement.text} isActive={index === activeIndex} />
+                <WordReveal 
+                  text={statement.text} 
+                  highlights={statement.highlight}
+                  isActive={index === activeIndex} 
+                />
               </div>
             ))}
           </div>
         </div>
 
+        {/* Statement counter */}
+        <motion.div
+          className="absolute top-8 right-8 font-mono text-xs text-muted-foreground/50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <span className="text-accent">{String(activeIndex + 1).padStart(2, '0')}</span>
+          <span className="mx-2">/</span>
+          <span>{String(statements.length).padStart(2, '0')}</span>
+        </motion.div>
+
         {/* Progress indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6">
+          <div className="flex items-center gap-3">
             {statements.map((_, index) => (
-              <div
+              <motion.div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === activeIndex
-                    ? "w-8 bg-accent"
-                    : index < activeIndex
-                    ? "bg-accent/50"
-                    : "bg-muted-foreground/30"
-                }`}
-              />
+                className="relative"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+              >
+                <motion.div
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                    index === activeIndex
+                      ? "bg-accent scale-125"
+                      : index < activeIndex
+                      ? "bg-accent/50"
+                      : "bg-muted-foreground/20"
+                  }`}
+                />
+                {index === activeIndex && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-accent/30"
+                    animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                )}
+              </motion.div>
             ))}
           </div>
-          <span className="text-xs font-body uppercase tracking-widest text-muted-foreground">
+          
+          <motion.span 
+            className="text-xs font-mono uppercase tracking-widest text-muted-foreground/50"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
             Keep scrolling
-          </span>
-          <div className="w-px h-8 bg-gradient-to-b from-muted-foreground to-transparent animate-pulse" />
+          </motion.span>
+          
+          <motion.div 
+            className="w-px h-10 bg-gradient-to-b from-muted-foreground/30 to-transparent"
+            animate={{ scaleY: [1, 1.2, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
         </div>
       </div>
     </section>

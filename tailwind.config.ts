@@ -15,7 +15,17 @@ export default {
     extend: {
       fontFamily: {
         display: ["Playfair Display", "Georgia", "serif"],
+        heading: ["Space Grotesk", "system-ui", "sans-serif"],
         body: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+      },
+      fontSize: {
+        "fluid-hero": "var(--text-hero)",
+        "fluid-section": "var(--text-section)",
+        "fluid-statement": "var(--text-statement)",
+        "fluid-title": "var(--text-title)",
+        "fluid-body": "var(--text-body)",
+        "fluid-caption": "var(--text-caption)",
       },
       colors: {
         border: "hsl(var(--border))",
@@ -80,6 +90,10 @@ export default {
           DEFAULT: "hsl(var(--rose))",
           glow: "hsl(var(--rose-glow))",
         },
+        "aws-orange": {
+          DEFAULT: "hsl(var(--aws-orange))",
+          glow: "hsl(var(--aws-orange-glow))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -141,6 +155,18 @@ export default {
           "0%": { strokeDashoffset: "1000" },
           "100%": { strokeDashoffset: "0" },
         },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "pulse-ring": {
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "100%": { transform: "scale(1.5)", opacity: "0" },
+        },
+        "count-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -154,6 +180,9 @@ export default {
         "float": "float 6s ease-in-out infinite",
         "glow-pulse": "glow-pulse 4s ease-in-out infinite",
         "draw-line": "draw-line 2s ease-out forwards",
+        "shimmer": "shimmer 2s linear infinite",
+        "pulse-ring": "pulse-ring 1.5s ease-out infinite",
+        "count-up": "count-up 0.5s ease-out forwards",
       },
     },
   },
