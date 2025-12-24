@@ -9,7 +9,6 @@ import HorizontalGallery from "@/components/HorizontalGallery";
 import TheStack from "@/components/TheStack";
 import CredentialsWall from "@/components/CredentialsWall";
 import ExperienceShowcase from "@/components/ExperienceShowcase";
-import EducationPanel from "@/components/EducationPanel";
 import GrandFinale from "@/components/GrandFinale";
 
 const Index = () => {
@@ -38,7 +37,6 @@ const Index = () => {
           <TheStack />
           <CredentialsWall />
           <ExperienceShowcase />
-          <EducationPanel />
           <GrandFinale />
         </main>
       </motion.div>
