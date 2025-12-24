@@ -1,327 +1,223 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
-import { Cloud, Brain, Code, Award, Shield, Database } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 
 interface Certification {
   id: string;
   name: string;
-  shortName: string;
   issuer: string;
-  date: string;
   category: "aws" | "ai" | "data" | "cloud";
-  icon: typeof Award;
+  year: string;
 }
 
 const certifications: Certification[] = [
-  {
-    id: "aws-saa",
-    name: "AWS Certified Solutions Architect – Associate",
-    shortName: "Solutions Architect",
-    issuer: "Amazon Web Services",
-    date: "April 2025",
-    category: "aws",
-    icon: Cloud,
-  },
-  {
-    id: "aws-ai",
-    name: "AWS Certified AI Practitioner",
-    shortName: "AI Practitioner",
-    issuer: "Amazon Web Services",
-    date: "March 2025",
-    category: "aws",
-    icon: Brain,
-  },
-  {
-    id: "aws-cp",
-    name: "AWS Certified Cloud Practitioner",
-    shortName: "Cloud Practitioner",
-    issuer: "Amazon Web Services",
-    date: "February 2025",
-    category: "aws",
-    icon: Cloud,
-  },
-  {
-    id: "ibm-ds",
-    name: "IBM Data Science Professional Certificate",
-    shortName: "Data Science Pro",
-    issuer: "Coursera",
-    date: "August 2023",
-    category: "data",
-    icon: Database,
-  },
-  {
-    id: "python-ml",
-    name: "Python for Data Science & Machine Learning",
-    shortName: "Python ML",
-    issuer: "Udemy",
-    date: "June 2023",
-    category: "ai",
-    icon: Code,
-  },
-  {
-    id: "intro-ai",
-    name: "Introduction to Artificial Intelligence",
-    shortName: "AI Fundamentals",
-    issuer: "edX",
-    date: "May 2023",
-    category: "ai",
-    icon: Brain,
-  },
-  {
-    id: "azure-ai",
-    name: "AI-900: Microsoft Azure AI Fundamentals",
-    shortName: "Azure AI",
-    issuer: "Microsoft",
-    date: "May 2022",
-    category: "cloud",
-    icon: Shield,
-  },
+  { id: "aws-saa", name: "Solutions Architect", issuer: "AWS", category: "aws", year: "2025" },
+  { id: "aws-ai", name: "AI Practitioner", issuer: "AWS", category: "aws", year: "2025" },
+  { id: "aws-cp", name: "Cloud Practitioner", issuer: "AWS", category: "aws", year: "2025" },
+  { id: "ibm-ds", name: "Data Science Professional", issuer: "IBM", category: "data", year: "2023" },
+  { id: "python-ml", name: "Python ML", issuer: "Udemy", category: "ai", year: "2023" },
+  { id: "intro-ai", name: "AI Fundamentals", issuer: "edX", category: "ai", year: "2023" },
+  { id: "azure-ai", name: "Azure AI-900", issuer: "Microsoft", category: "cloud", year: "2022" },
 ];
 
-const categoryColors = {
-  aws: "from-aws-orange/30 to-aws-orange/10 border-aws-orange/40 text-aws-orange",
-  ai: "from-purple/30 to-purple/10 border-purple/40 text-purple",
-  data: "from-deep-blue/30 to-deep-blue/10 border-deep-blue/40 text-deep-blue",
-  cloud: "from-teal/30 to-teal/10 border-teal/40 text-teal",
-};
-
-const CertCard = ({ cert, index }: { cert: Certification; index: number }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-  const Icon = cert.icon;
-  const colors = categoryColors[cert.category];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, rotateY: -15 }}
-      whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.6 }}
-      className="perspective-container"
-      onMouseEnter={() => setIsFlipped(true)}
-      onMouseLeave={() => setIsFlipped(false)}
-    >
-      <motion.div
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-        className="relative w-full h-40 md:h-48"
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        {/* Front */}
-        <div
-          className={`
-            absolute inset-0 rounded-sm border bg-gradient-to-br ${colors}
-            backdrop-blur-sm p-5 flex flex-col justify-between
-            backface-hidden cursor-pointer
-          `}
-          style={{ backfaceVisibility: "hidden" }}
-        >
-          {/* Icon */}
-          <div className="flex justify-between items-start">
-            <Icon className="w-8 h-8 opacity-60" />
-            {cert.category === "aws" && (
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-aws-orange animate-pulse" />
-                <span className="text-xs font-mono text-aws-orange">AWS</span>
-              </div>
-            )}
-          </div>
-
-          {/* Name */}
-          <div>
-            <h4 className="font-heading text-sm md:text-base text-foreground leading-tight mb-1">
-              {cert.shortName}
-            </h4>
-            <p className="text-xs text-muted-foreground font-mono">
-              {cert.issuer}
-            </p>
-          </div>
-        </div>
-
-        {/* Back */}
-        <div
-          className={`
-            absolute inset-0 rounded-sm border bg-gradient-to-br ${colors}
-            backdrop-blur-sm p-5 flex flex-col justify-between
-          `}
-          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-        >
-          <div>
-            <h4 className="font-heading text-xs text-foreground leading-tight mb-2">
-              {cert.name}
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              {cert.issuer}
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-accent">{cert.date}</span>
-            <Award className="w-4 h-4 text-accent/50" />
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
-
-const AnimatedCounter = ({ value, label }: { value: number; label: string }) => {
+const AnimatedCounter = ({ target }: { target: number }) => {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   return (
     <motion.div
-      ref={ref}
-      className="text-center"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
       onViewportEnter={() => {
+        if (hasAnimated) return;
+        setHasAnimated(true);
         let start = 0;
-        const end = value;
-        const duration = 1500;
-        const stepTime = duration / end;
-        
+        const duration = 1200;
+        const stepTime = duration / target;
         const timer = setInterval(() => {
           start += 1;
           setCount(start);
-          if (start >= end) clearInterval(timer);
+          if (start >= target) clearInterval(timer);
         }, stepTime);
       }}
+      className="font-display font-bold text-[15vw] md:text-[12vw] lg:text-[10vw] text-foreground leading-none tracking-tighter"
     >
-      <span className="block font-heading text-5xl md:text-7xl text-foreground font-bold">
-        {count}
-      </span>
-      <span className="block text-xs font-mono text-muted-foreground uppercase tracking-wider mt-2">
-        {label}
-      </span>
+      0{count}
     </motion.div>
   );
 };
 
 export const CredentialsWall = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hoveredCert, setHoveredCert] = useState<string | null>(null);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
   });
 
-  const x = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const x = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   const awsCerts = certifications.filter(c => c.category === "aws");
   const otherCerts = certifications.filter(c => c.category !== "aws");
 
   return (
-    <section id="certifications" className="py-32 md:py-48 relative overflow-hidden">
-      {/* Background decoration */}
+    <section id="certifications" ref={containerRef} className="py-32 md:py-48 relative overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 opacity-20">
         <div
           className="w-full h-full"
           style={{
-            backgroundImage: `
-              radial-gradient(circle at 20% 30%, hsl(var(--aws-orange) / 0.1) 0%, transparent 40%),
-              radial-gradient(circle at 80% 70%, hsl(var(--purple) / 0.1) 0%, transparent 40%)
-            `,
+            backgroundImage: `radial-gradient(circle at 80% 20%, hsl(var(--copper) / 0.15) 0%, transparent 50%)`,
           }}
         />
       </div>
 
-      <div ref={containerRef} className="container mx-auto px-6 md:px-12 relative z-10">
-        {/* Header */}
+      <div className="container mx-auto px-6 md:px-12 relative z-10">
+        {/* Header row with counter */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-20">
+          {/* Left: Counter */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <AnimatedCounter target={7} />
+            <span className="block font-mono text-xs text-muted-foreground tracking-widest uppercase mt-4">
+              Industry Certifications
+            </span>
+          </motion.div>
+
+          {/* Right: Description */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex flex-col justify-end"
+          >
+            <span className="text-accent font-mono text-xs tracking-widest uppercase block mb-4">
+              Credentials
+            </span>
+            <p className="text-muted-foreground font-body text-sm md:text-base max-w-md">
+              Validated expertise across cloud architecture, AI/ML, and enterprise data systems.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* AWS Cluster - Premium treatment */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-8"
-        >
-          <div>
-            <span className="text-accent font-mono text-xs tracking-widest uppercase block mb-6">
-              Credentials
-            </span>
-            <h2 className="font-heading text-fluid-section text-foreground tracking-tight leading-none">
-              Industry
-              <br />
-              <span className="text-gradient-copper">Certified</span>
-            </h2>
-          </div>
-
-          {/* Counter */}
-          <AnimatedCounter value={7} label="Total Certifications" />
-        </motion.div>
-
-        {/* AWS Cluster - Featured */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
           className="mb-16"
         >
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 rounded-full bg-aws-orange/20 flex items-center justify-center">
-              <Cloud className="w-4 h-4 text-aws-orange" />
-            </div>
-            <h3 className="font-heading text-xl text-foreground">
-              Amazon Web Services
-            </h3>
-            <span className="px-2 py-0.5 text-xs font-mono text-aws-orange bg-aws-orange/10 rounded-sm">
-              3 Certifications
+            <span className="px-3 py-1 text-xs font-mono bg-[#FF9900]/10 text-[#FF9900] border border-[#FF9900]/30 rounded-sm">
+              AWS
             </span>
+            <div className="flex-1 h-px bg-border/20" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {awsCerts.map((cert, i) => (
-              <CertCard key={cert.id} cert={cert} index={i} />
+              <motion.div
+                key={cert.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                onMouseEnter={() => setHoveredCert(cert.id)}
+                onMouseLeave={() => setHoveredCert(null)}
+                className={`
+                  relative p-6 border border-[#FF9900]/20 rounded-sm
+                  bg-gradient-to-br from-[#FF9900]/5 to-transparent
+                  transition-all duration-300 cursor-default
+                  ${hoveredCert === cert.id ? 'border-[#FF9900]/50 shadow-lg shadow-[#FF9900]/10' : ''}
+                `}
+              >
+                <span className="block font-heading text-lg md:text-xl text-foreground mb-2">
+                  {cert.name}
+                </span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {cert.year}
+                </span>
+
+                {/* Glow on hover */}
+                <motion.div
+                  className="absolute inset-0 rounded-sm pointer-events-none"
+                  animate={{ opacity: hoveredCert === cert.id ? 0.1 : 0 }}
+                  style={{
+                    background: `radial-gradient(circle at center, #FF9900 0%, transparent 70%)`,
+                  }}
+                />
+              </motion.div>
             ))}
           </div>
         </motion.div>
 
-        {/* Other Certifications - Horizontal scroll on mobile */}
+        {/* Other certs - horizontal strip */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-              <Award className="w-4 h-4 text-accent" />
-            </div>
-            <h3 className="font-heading text-xl text-foreground">
-              AI & Data Science
-            </h3>
+            <span className="px-3 py-1 text-xs font-mono bg-accent/10 text-accent border border-accent/30 rounded-sm">
+              AI & Data
+            </span>
+            <div className="flex-1 h-px bg-border/20" />
           </div>
 
-          {/* Scrollable on mobile, grid on desktop */}
-          <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible scrollbar-hide">
-            {otherCerts.map((cert, i) => (
-              <div key={cert.id} className="min-w-[260px] md:min-w-0">
-                <CertCard cert={cert} index={i + 3} />
-              </div>
+          {/* Horizontal scroll strip */}
+          <motion.div 
+            className="flex gap-4 overflow-hidden"
+            style={{ x }}
+          >
+            {[...otherCerts, ...otherCerts].map((cert, i) => (
+              <motion.div
+                key={`${cert.id}-${i}`}
+                onMouseEnter={() => setHoveredCert(cert.id)}
+                onMouseLeave={() => setHoveredCert(null)}
+                className={`
+                  flex-shrink-0 px-6 py-4 border border-border/20 rounded-sm
+                  bg-card/50 backdrop-blur-sm
+                  transition-all duration-300 cursor-default
+                  ${hoveredCert === cert.id ? 'border-accent/50' : ''}
+                `}
+              >
+                <span className="block font-heading text-sm text-foreground whitespace-nowrap">
+                  {cert.name}
+                </span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {cert.issuer} • {cert.year}
+                </span>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </motion.div>
 
-        {/* Stats bar */}
+        {/* Stats footer */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
-          className="mt-16 pt-8 border-t border-border/20 flex flex-wrap justify-center gap-12"
+          transition={{ delay: 0.4 }}
+          className="mt-20 pt-8 border-t border-border/20 flex flex-wrap justify-center gap-12 md:gap-20"
         >
-          <div className="text-center">
-            <span className="block font-heading text-3xl text-aws-orange">3</span>
-            <span className="text-xs font-mono text-muted-foreground uppercase">AWS</span>
-          </div>
-          <div className="text-center">
-            <span className="block font-heading text-3xl text-purple">2</span>
-            <span className="text-xs font-mono text-muted-foreground uppercase">AI/ML</span>
-          </div>
-          <div className="text-center">
-            <span className="block font-heading text-3xl text-deep-blue">1</span>
-            <span className="text-xs font-mono text-muted-foreground uppercase">Data Science</span>
-          </div>
-          <div className="text-center">
-            <span className="block font-heading text-3xl text-teal">1</span>
-            <span className="text-xs font-mono text-muted-foreground uppercase">Azure</span>
-          </div>
+          {[
+            { count: 3, label: "AWS" },
+            { count: 2, label: "AI/ML" },
+            { count: 1, label: "Data Science" },
+            { count: 1, label: "Azure" },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <span className="block font-display text-2xl md:text-3xl text-foreground font-bold">
+                {stat.count}
+              </span>
+              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+                {stat.label}
+              </span>
+            </div>
+          ))}
         </motion.div>
       </div>
     </section>

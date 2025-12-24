@@ -1,347 +1,193 @@
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
-import { 
-  Brain, Server, Cloud, Layout, Wrench, 
-  Sparkles, Database, Terminal, Palette, Cpu 
-} from "lucide-react";
-
-interface Skill {
-  name: string;
-  context: string;
-  featured?: boolean;
-}
 
 interface SkillCategory {
   id: string;
   name: string;
-  icon: typeof Brain;
-  color: string;
-  bgGradient: string;
-  skills: Skill[];
+  shortName: string;
+  skills: string[];
+  direction: "left" | "right";
 }
 
 const categories: SkillCategory[] = [
   {
     id: "ai",
-    name: "AI / ML",
-    icon: Brain,
-    color: "text-copper",
-    bgGradient: "from-copper/20 to-copper/5",
-    skills: [
-      { name: "LangChain", context: "Agent orchestration, RAG systems", featured: true },
-      { name: "OpenAI API", context: "GPT integration, embeddings", featured: true },
-      { name: "PyTorch", context: "Deep learning, model training" },
-      { name: "Scikit-learn", context: "Classical ML, preprocessing" },
-      { name: "BERT", context: "NLU, text classification", featured: true },
-      { name: "BART", context: "Text summarization" },
-      { name: "FAISS", context: "Vector similarity search" },
-      { name: "XGBoost", context: "Gradient boosting" },
-      { name: "TensorFlow.js", context: "Browser-based ML" },
-    ],
+    name: "AI / Machine Learning",
+    shortName: "AI",
+    skills: ["LangChain", "OpenAI", "PyTorch", "BERT", "FAISS", "Scikit-learn", "XGBoost", "TensorFlow.js", "BART"],
+    direction: "left",
   },
   {
     id: "backend",
-    name: "Backend",
-    icon: Server,
-    color: "text-deep-blue",
-    bgGradient: "from-deep-blue/20 to-deep-blue/5",
-    skills: [
-      { name: "Python", context: "LLM pipelines, FastAPI services", featured: true },
-      { name: "Java", context: "Spring Boot microservices" },
-      { name: "FastAPI", context: "High-performance APIs", featured: true },
-      { name: "Spring Boot", context: "Enterprise Java" },
-      { name: "Flask", context: "Lightweight web apps" },
-      { name: "SQLAlchemy", context: "ORM, database management" },
-    ],
+    name: "Backend Development",
+    shortName: "BE",
+    skills: ["Python", "FastAPI", "Java", "Spring Boot", "Flask", "SQLAlchemy", "PostgreSQL", "Redis"],
+    direction: "right",
   },
   {
     id: "devops",
     name: "Cloud & DevOps",
-    icon: Cloud,
-    color: "text-teal",
-    bgGradient: "from-teal/20 to-teal/5",
-    skills: [
-      { name: "AWS", context: "SageMaker, Lambda, S3", featured: true },
-      { name: "Docker", context: "Containerized deployments", featured: true },
-      { name: "GitHub Actions", context: "CI/CD automation" },
-      { name: "Azure", context: "Functions, App Service" },
-      { name: "Kafka", context: "Event streaming, pipelines" },
-      { name: "Spark", context: "Distributed processing" },
-    ],
+    shortName: "OPS",
+    skills: ["AWS", "Docker", "Kafka", "Spark", "Azure", "GitHub Actions", "Terraform", "Kubernetes"],
+    direction: "left",
   },
   {
     id: "frontend",
     name: "Frontend",
-    icon: Layout,
-    color: "text-purple",
-    bgGradient: "from-purple/20 to-purple/5",
-    skills: [
-      { name: "React", context: "Interactive dashboards", featured: true },
-      { name: "TypeScript", context: "Type-safe applications", featured: true },
-      { name: "Tailwind CSS", context: "Utility-first styling" },
-      { name: "Framer Motion", context: "Animations, transitions" },
-      { name: "Streamlit", context: "Rapid ML prototypes" },
-    ],
+    shortName: "FE",
+    skills: ["React", "TypeScript", "Tailwind", "Framer Motion", "Next.js", "Streamlit"],
+    direction: "right",
   },
   {
     id: "tools",
     name: "Automation & Tools",
-    icon: Wrench,
-    color: "text-emerald",
-    bgGradient: "from-emerald/20 to-emerald/5",
-    skills: [
-      { name: "MCP", context: "Model Context Protocol servers", featured: true },
-      { name: "JSON-RPC 2.0", context: "High-throughput LLM execution" },
-      { name: "Selenium", context: "Browser automation" },
-      { name: "Playwright", context: "Modern web testing" },
-      { name: "Cursor", context: "AI-powered IDE" },
-      { name: "GitHub Copilot", context: "AI pair programming" },
-    ],
+    shortName: "AUTO",
+    skills: ["MCP", "JSON-RPC", "Selenium", "Playwright", "Cursor", "GitHub Copilot"],
+    direction: "left",
   },
 ];
 
-const BentoSkillCard = ({ 
-  skill, 
+const MarqueeStrip = ({ 
   category, 
-  index,
-  size = "normal" 
+  index 
 }: { 
-  skill: Skill; 
-  category: SkillCategory;
+  category: SkillCategory; 
   index: number;
-  size?: "large" | "normal";
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  // 3D tilt effect
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { damping: 20, stiffness: 200 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { damping: 20, stiffness: 200 });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
-    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-    setIsHovered(false);
-  };
-
-  const Icon = category.icon;
-
+  const [isPaused, setIsPaused] = useState(false);
+  const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+  
+  // Double the skills for seamless loop
+  const skills = [...category.skills, ...category.skills, ...category.skills];
+  const speed = 25 + index * 5; // Varying speeds
+  
   return (
     <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: category.direction === "left" ? -50 : 50 }}
+      whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.03, duration: 0.4 }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      style={{ rotateX, rotateY, transformPerspective: 1000 }}
-      className={`
-        relative overflow-hidden rounded-sm border border-border/30
-        bg-gradient-to-br ${category.bgGradient}
-        backdrop-blur-sm cursor-default
-        transition-all duration-300
-        ${isHovered ? 'border-accent/40 shadow-lg' : ''}
-        ${size === "large" ? 'p-6 md:p-8' : 'p-4 md:p-5'}
-      `}
+      transition={{ delay: index * 0.1, duration: 0.6 }}
+      className="relative group border-t border-border/20 py-6"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => {
+        setIsPaused(false);
+        setHoveredSkill(null);
+      }}
     >
-      {/* Glow on hover */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{ opacity: isHovered ? 0.15 : 0 }}
-        style={{
-          background: `radial-gradient(circle at 50% 50%, hsl(var(--accent)) 0%, transparent 70%)`,
-        }}
-      />
+      {/* Category label - vertical on left */}
+      <div className="absolute left-0 top-0 bottom-0 w-16 md:w-24 flex items-center justify-center border-r border-border/20 bg-background z-10">
+        <span className="font-mono text-xs text-accent tracking-wider rotate-180" style={{ writingMode: "vertical-rl" }}>
+          {category.shortName}
+        </span>
+      </div>
 
-      {/* Content */}
-      <div className="relative z-10">
-        <div className="flex items-start justify-between mb-3">
-          <span className={`
-            font-heading font-semibold ${category.color} tracking-tight
-            ${size === "large" ? 'text-xl md:text-2xl' : 'text-sm md:text-base'}
-          `}>
-            {skill.name}
-          </span>
-          {skill.featured && (
-            <Sparkles className="w-4 h-4 text-accent/50" />
-          )}
-        </div>
-
-        <AnimatePresence>
-          {(isHovered || size === "large") && (
-            <motion.p
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="text-xs text-muted-foreground font-body overflow-hidden"
+      {/* Marquee container */}
+      <div className="overflow-hidden ml-16 md:ml-24">
+        <motion.div
+          className="flex gap-12 whitespace-nowrap"
+          animate={{
+            x: category.direction === "left" 
+              ? isPaused ? undefined : ["0%", "-33.33%"]
+              : isPaused ? undefined : ["-33.33%", "0%"]
+          }}
+          transition={{
+            x: {
+              duration: speed,
+              repeat: Infinity,
+              ease: "linear",
+            },
+          }}
+        >
+          {skills.map((skill, i) => (
+            <motion.span
+              key={`${skill}-${i}`}
+              className={`
+                inline-block font-heading text-2xl md:text-4xl lg:text-5xl tracking-tight cursor-default
+                transition-all duration-300
+                ${hoveredSkill === skill 
+                  ? 'text-accent scale-105' 
+                  : hoveredSkill 
+                    ? 'text-muted-foreground/30' 
+                    : 'text-foreground/80 hover:text-accent'
+                }
+              `}
+              onMouseEnter={() => setHoveredSkill(skill)}
+              onMouseLeave={() => setHoveredSkill(null)}
             >
-              {skill.context}
-            </motion.p>
-          )}
-        </AnimatePresence>
+              {skill}
+            </motion.span>
+          ))}
+        </motion.div>
       </div>
 
-      {/* Category indicator */}
-      <div className="absolute bottom-2 right-2 opacity-20">
-        <Icon className="w-5 h-5" />
-      </div>
+      {/* Fade edges */}
+      <div className="absolute top-0 bottom-0 left-16 md:left-24 w-16 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
     </motion.div>
   );
 };
 
 export const TheStack = () => {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   return (
-    <section id="skills" className="py-32 md:py-48 relative overflow-hidden">
+    <section id="skills" ref={containerRef} className="py-32 md:py-48 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 opacity-30">
         <div
           className="w-full h-full"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 30% 20%, hsl(var(--copper) / 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 70% 80%, hsl(var(--deep-blue) / 0.08) 0%, transparent 40%)
+              radial-gradient(circle at 0% 50%, hsl(var(--copper) / 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 100% 50%, hsl(var(--deep-blue) / 0.08) 0%, transparent 50%)
             `,
           }}
         />
       </div>
 
-      <div className="container mx-auto px-6 md:px-12 relative z-10">
+      <motion.div style={{ opacity }} className="relative z-10">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mb-20"
-        >
-          <span className="text-accent font-mono text-xs tracking-widest uppercase block mb-6">
-            Toolkit
-          </span>
-          <h2 className="font-heading text-fluid-section text-foreground tracking-tight leading-none mb-6">
-            The
-            <br />
-            <span className="text-stroke">Stack</span>
-          </h2>
-          <p className="text-muted-foreground font-body text-sm md:text-base max-w-xl">
-            Technologies I use to build intelligent, scalable systems.
-          </p>
-        </motion.div>
-
-        {/* Category filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex flex-wrap gap-3 mb-12"
-        >
-          <button
-            onClick={() => setActiveCategory(null)}
-            className={`
-              px-4 py-2 text-xs font-mono uppercase tracking-wider
-              rounded-sm border transition-all duration-300
-              ${!activeCategory 
-                ? 'bg-accent/20 border-accent/50 text-accent' 
-                : 'border-border/30 text-muted-foreground hover:border-accent/30'
-              }
-            `}
+        <div className="container mx-auto px-6 md:px-12 mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
           >
-            All
-          </button>
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id === activeCategory ? null : cat.id)}
-                className={`
-                  px-4 py-2 text-xs font-mono uppercase tracking-wider
-                  rounded-sm border transition-all duration-300
-                  flex items-center gap-2
-                  ${activeCategory === cat.id 
-                    ? 'bg-accent/20 border-accent/50 text-accent' 
-                    : 'border-border/30 text-muted-foreground hover:border-accent/30'
-                  }
-                `}
-              >
-                <Icon className="w-3 h-3" />
-                {cat.name}
-              </button>
-            );
-          })}
-        </motion.div>
-
-        {/* Bento Grid */}
-        {categories
-          .filter(cat => !activeCategory || cat.id === activeCategory)
-          .map((category) => (
-            <motion.div
-              key={category.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mb-12"
-            >
-              {/* Category header */}
-              <div className="flex items-center gap-3 mb-6">
-                <category.icon className={`w-5 h-5 ${category.color}`} />
-                <h3 className={`font-heading text-lg ${category.color}`}>
-                  {category.name}
-                </h3>
-                <div className="flex-1 h-px bg-border/20" />
-                <span className="text-xs font-mono text-muted-foreground">
-                  {category.skills.length} skills
-                </span>
-              </div>
-
-              {/* Skills grid - Bento style with featured items larger */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {category.skills.map((skill, i) => (
-                  <div
-                    key={skill.name}
-                    className={skill.featured ? 'col-span-2 row-span-1' : ''}
-                  >
-                    <BentoSkillCard
-                      skill={skill}
-                      category={category}
-                      index={i}
-                      size={skill.featured ? "large" : "normal"}
-                    />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-
-        {/* Legend */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-          className="mt-16 pt-8 border-t border-border/20 flex flex-wrap justify-center gap-8 text-xs font-mono text-muted-foreground"
-        >
-          {categories.map((cat) => (
-            <span key={cat.id} className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${cat.color.replace('text-', 'bg-')}`} />
-              {cat.name}
+            <span className="text-accent font-mono text-xs tracking-widest uppercase block mb-6">
+              Toolkit
             </span>
+            <h2 className="font-heading text-4xl md:text-6xl lg:text-7xl text-foreground tracking-tight leading-none">
+              The Stack
+            </h2>
+          </motion.div>
+        </div>
+
+        {/* Marquee strips */}
+        <div className="border-b border-border/20">
+          {categories.map((category, index) => (
+            <MarqueeStrip key={category.id} category={category} index={index} />
           ))}
-        </motion.div>
-      </div>
+        </div>
+
+        {/* Footer note */}
+        <div className="container mx-auto px-6 md:px-12 mt-12">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-xs font-mono text-muted-foreground/50 text-center"
+          >
+            Hover to pause • {categories.reduce((acc, cat) => acc + cat.skills.length, 0)} technologies
+          </motion.p>
+        </div>
+      </motion.div>
     </section>
   );
 };
