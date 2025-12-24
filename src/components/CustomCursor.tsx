@@ -125,6 +125,21 @@ export const CustomCursor = () => {
   const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
   if (isTouchDevice) return null;
 
+  // Get ring size based on state
+  const getRingSize = () => {
+    if (isHovering) return 100;
+    if (isMagnetic) return 60;
+    return 40;
+  };
+
+  // Get dot size based on state
+  const getDotSize = () => {
+    if (isHovering) return 80;
+    if (isClicking) return 8;
+    if (isMagnetic) return 16;
+    return 12;
+  };
+
   return (
     <>
       {/* Main cursor dot */}
@@ -139,8 +154,8 @@ export const CustomCursor = () => {
         <motion.div
           className="relative -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground"
           animate={{
-            width: isHovering ? 80 : isClicking ? 8 : isMagnetic ? 16 : 12,
-            height: isHovering ? 80 : isClicking ? 8 : isMagnetic ? 16 : 12,
+            width: getDotSize(),
+            height: getDotSize(),
           }}
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
         >
@@ -165,16 +180,17 @@ export const CustomCursor = () => {
         }}
       >
         <motion.div
-          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/30"
+          className={`relative -translate-x-1/2 -translate-y-1/2 rounded-full border transition-colors duration-200 ${
+            isMagnetic ? "border-accent" : "border-foreground/30"
+          }`}
           style={{
             x: magneticXSpring,
             y: magneticYSpring,
           }}
           animate={{
-            width: isHovering ? 100 : isMagnetic ? 60 : 40,
-            height: isHovering ? 100 : isMagnetic ? 60 : 40,
+            width: getRingSize(),
+            height: getRingSize(),
             opacity: isHovering ? 0.5 : isMagnetic ? 0.6 : 0.3,
-            borderColor: isMagnetic ? "hsl(var(--accent))" : "hsl(var(--foreground) / 0.3)",
           }}
           transition={{ type: "spring", damping: 15, stiffness: 150 }}
         />

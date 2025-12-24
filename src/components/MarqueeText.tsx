@@ -1,5 +1,5 @@
-import { useRef, useEffect } from "react";
-import { motion, useAnimationFrame, useMotionValue, useTransform } from "framer-motion";
+import { useRef } from "react";
+import { motion, useAnimationFrame, useMotionValue } from "framer-motion";
 
 interface MarqueeTextProps {
   items: string[];
@@ -18,29 +18,32 @@ export const MarqueeText = ({
 }: MarqueeTextProps) => {
   const baseX = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Create a long enough string that loops seamlessly
   const content = [...items, ...items, ...items, ...items].join(` ${separator} `);
 
-  useAnimationFrame((t, delta) => {
+  useAnimationFrame((_, delta) => {
     const moveBy = (direction === "left" ? -1 : 1) * speed * (delta / 1000);
-    baseX.set(baseX.get() + moveBy);
+    let newX = baseX.get() + moveBy;
 
     // Reset position for seamless loop
-    if (containerRef.current) {
-      const width = containerRef.current.scrollWidth / 4;
-      if (direction === "left" && baseX.get() <= -width) {
-        baseX.set(0);
-      } else if (direction === "right" && baseX.get() >= 0) {
-        baseX.set(-width);
+    if (contentRef.current) {
+      const width = contentRef.current.scrollWidth / 4;
+      if (direction === "left" && newX <= -width) {
+        newX = 0;
+      } else if (direction === "right" && newX >= 0) {
+        newX = -width;
       }
     }
+    
+    baseX.set(newX);
   });
 
   return (
-    <div className={`overflow-hidden whitespace-nowrap ${className}`}>
+    <div className={`overflow-hidden whitespace-nowrap ${className}`} ref={containerRef}>
       <motion.div
-        ref={containerRef}
+        ref={contentRef}
         style={{ x: baseX }}
         className="inline-flex items-center"
       >
@@ -60,25 +63,20 @@ interface MarqueeStackProps {
 
 export const MarqueeStack = ({ items, className = "" }: MarqueeStackProps) => {
   return (
-    <div className={`relative py-8 overflow-hidden ${className}`}>
+    <div className={`relative py-6 overflow-hidden ${className}`}>
       {/* Background layer - fastest, most transparent */}
-      <div className="absolute inset-0 opacity-20 scale-110">
-        <MarqueeText items={items} speed={80} direction="right" />
-      </div>
-      
-      {/* Middle layer */}
-      <div className="relative opacity-40 scale-105">
-        <MarqueeText items={items} speed={60} direction="left" separator="◆" />
+      <div className="opacity-15 scale-105 mb-3">
+        <MarqueeText items={items} speed={70} direction="right" separator="◆" />
       </div>
       
       {/* Foreground layer - slowest, most visible */}
-      <div className="relative mt-4 opacity-80">
-        <MarqueeText items={items} speed={40} direction="right" separator="—" />
+      <div className="opacity-60">
+        <MarqueeText items={items} speed={35} direction="left" separator="—" />
       </div>
 
       {/* Gradient fades on edges */}
-      <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+      <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
     </div>
   );
 };
