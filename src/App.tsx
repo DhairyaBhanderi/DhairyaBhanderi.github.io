@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import SmoothScroll from "./components/SmoothScroll";
 import CustomCursor from "./components/CustomCursor";
 import PageTransition from "./components/PageTransition";
+import { ScrollVelocityProvider } from "./components/ScrollVelocity";
 
 const queryClient = new QueryClient();
 
@@ -17,16 +18,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <SmoothScroll>
-        <CustomCursor />
-        <BrowserRouter>
-          <PageTransition>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </PageTransition>
-        </BrowserRouter>
+        <ScrollVelocityProvider>
+          <CustomCursor />
+          <BrowserRouter>
+            <PageTransition>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PageTransition>
+          </BrowserRouter>
+        </ScrollVelocityProvider>
       </SmoothScroll>
     </TooltipProvider>
   </QueryClientProvider>
