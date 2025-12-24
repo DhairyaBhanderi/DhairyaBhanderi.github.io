@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useReducedMotion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Canvas } from "@react-three/fiber";
-import { Float, Text3D, OrbitControls, Center } from "@react-three/drei";
+import { Float, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import MagneticButton from "./MagneticButton";
 import DiagonalDivider from "./DiagonalDivider";
@@ -17,24 +17,8 @@ const subtitle = "Building intelligent systems that think, adapt, and scale";
 
 // 3D Floating Shapes Component
 const FloatingShapes = () => {
-  const groupRef = useRef<THREE.Group>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-      mouseX.set(x);
-      mouseY.set(y);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
-
   return (
-    <group ref={groupRef}>
+    <group>
       {/* Main floating torus */}
       <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
         <mesh position={[0, 0, 0]}>
@@ -74,23 +58,48 @@ const FloatingShapes = () => {
         </mesh>
       </Float>
 
+      {/* Second sphere */}
+      <Float speed={2.5} rotationIntensity={0.8} floatIntensity={0.6}>
+        <mesh position={[-2, 1.5, -0.5]}>
+          <sphereGeometry args={[0.2, 32, 32]} />
+          <meshStandardMaterial
+            color="#c68550"
+            metalness={0.6}
+            roughness={0.3}
+          />
+        </mesh>
+      </Float>
+
+      {/* Small decorative icosahedron */}
+      <Float speed={1.8} rotationIntensity={1.5} floatIntensity={0.7}>
+        <mesh position={[1.5, -1, 0.5]}>
+          <icosahedronGeometry args={[0.25]} />
+          <meshStandardMaterial
+            color="#f5f0e8"
+            metalness={0.4}
+            roughness={0.5}
+            wireframe
+          />
+        </mesh>
+      </Float>
+
       {/* Ambient particles */}
-      {[...Array(30)].map((_, i) => (
+      {[...Array(20)].map((_, i) => (
         <Float
           key={i}
           speed={1 + Math.random() * 2}
-          rotationIntensity={0.5}
-          floatIntensity={0.5}
+          rotationIntensity={0.3}
+          floatIntensity={0.4}
         >
           <mesh
             position={[
-              (Math.random() - 0.5) * 8,
               (Math.random() - 0.5) * 6,
-              (Math.random() - 0.5) * 4 - 2,
+              (Math.random() - 0.5) * 4,
+              (Math.random() - 0.5) * 3 - 1,
             ]}
           >
-            <sphereGeometry args={[0.02 + Math.random() * 0.04]} />
-            <meshBasicMaterial color="#c68550" opacity={0.6} transparent />
+            <sphereGeometry args={[0.02 + Math.random() * 0.03]} />
+            <meshBasicMaterial color="#c68550" opacity={0.5} transparent />
           </mesh>
         </Float>
       ))}
@@ -98,11 +107,17 @@ const FloatingShapes = () => {
   );
 };
 
+// Loading fallback for 3D canvas
+const CanvasLoader = () => (
+  <div className="absolute inset-0 flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 export const SplitHero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [nameRevealed, setNameRevealed] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
@@ -115,8 +130,8 @@ export const SplitHero = () => {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 20;
-      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      const x = (e.clientX / window.innerWidth - 0.5) * 15;
+      const y = (e.clientY / window.innerHeight - 0.5) * 15;
       mouseX.set(x);
       mouseY.set(y);
     };
@@ -135,7 +150,6 @@ export const SplitHero = () => {
   useEffect(() => {
     if (!isLoaded || !nameRef.current || shouldReduceMotion) {
       if (shouldReduceMotion) {
-        setNameRevealed(true);
         setShowContent(true);
       }
       return;
@@ -145,17 +159,16 @@ export const SplitHero = () => {
 
     gsap.fromTo(
       chars,
-      { y: 120, opacity: 0, rotateX: -90 },
+      { y: 100, opacity: 0, rotateX: -90 },
       {
         y: 0,
         opacity: 1,
         rotateX: 0,
-        duration: 1,
-        stagger: 0.05,
+        duration: 0.9,
+        stagger: 0.04,
         ease: "power3.out",
         onComplete: () => {
-          setNameRevealed(true);
-          setTimeout(() => setShowContent(true), 300);
+          setTimeout(() => setShowContent(true), 200);
         },
       }
     );
@@ -167,13 +180,13 @@ export const SplitHero = () => {
 
     const ctx = gsap.context(() => {
       gsap.to(".hero-content-left", {
-        y: 100,
-        opacity: 0,
+        y: 80,
+        opacity: 0.2,
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
           end: "bottom top",
-          scrub: 1,
+          scrub: 1.5,
         },
       });
     }, containerRef);
@@ -203,8 +216,16 @@ export const SplitHero = () => {
     <>
       <section
         ref={containerRef}
-        className="relative min-h-screen flex items-stretch overflow-hidden"
+        className="relative min-h-screen flex items-stretch overflow-hidden bg-background"
       >
+        {/* Background gradient */}
+        <div 
+          className="absolute inset-0 opacity-50"
+          style={{
+            background: "radial-gradient(ellipse at 30% 50%, hsl(24 50% 55% / 0.08) 0%, transparent 50%)"
+          }}
+        />
+
         {/* Left Side - Text Content */}
         <motion.div
           style={{ x: parallaxX, y: parallaxY }}
@@ -222,6 +243,7 @@ export const SplitHero = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: isLoaded ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
             className="mb-4 overflow-hidden"
           >
             <h1
@@ -270,7 +292,7 @@ export const SplitHero = () => {
             </MagneticButton>
 
             <MagneticButton onClick={scrollToContact}>
-              <button className="group relative px-8 py-4 font-body text-sm uppercase tracking-[0.15em] text-foreground border border-foreground/30 rounded-full overflow-hidden transition-all duration-500 hover:border-accent hover:text-accent">
+              <button className="group relative px-8 py-4 font-body text-sm uppercase tracking-[0.15em] text-foreground border border-muted rounded-full overflow-hidden transition-all duration-500 hover:border-accent hover:text-accent">
                 <span className="relative z-10">Get in Touch</span>
               </button>
             </MagneticButton>
@@ -297,47 +319,44 @@ export const SplitHero = () => {
         </motion.div>
 
         {/* Right Side - 3D Canvas */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isLoaded ? 1 : 0 }}
-          transition={{ duration: 1.5, delay: 0.5 }}
-          className="hidden lg:block absolute right-0 top-0 w-1/2 h-full"
-        >
+        <div className="hidden lg:block absolute right-0 top-0 w-1/2 h-full">
           {/* Gradient overlay for blending */}
-          <div className="absolute inset-0 z-10 bg-gradient-to-r from-background via-background/50 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-background via-background/60 to-transparent pointer-events-none" />
 
-          <Canvas
-            camera={{ position: [0, 0, 6], fov: 45 }}
-            className="w-full h-full"
-            dpr={[1, 2]}
-          >
-            <ambientLight intensity={0.4} />
-            <pointLight position={[10, 10, 10]} intensity={1} color="#c68550" />
-            <pointLight position={[-10, -10, -10]} intensity={0.5} color="#f5f0e8" />
-            <spotLight
-              position={[0, 5, 5]}
-              angle={0.3}
-              penumbra={1}
-              intensity={0.5}
-              color="#c68550"
-            />
-            <FloatingShapes />
-            <OrbitControls
-              enableZoom={false}
-              enablePan={false}
-              autoRotate
-              autoRotateSpeed={0.5}
-              maxPolarAngle={Math.PI / 2}
-              minPolarAngle={Math.PI / 2}
-            />
-          </Canvas>
+          <Suspense fallback={<CanvasLoader />}>
+            <Canvas
+              camera={{ position: [0, 0, 6], fov: 45 }}
+              className="w-full h-full"
+              dpr={[1, 2]}
+            >
+              <ambientLight intensity={0.4} />
+              <pointLight position={[10, 10, 10]} intensity={1} color="#c68550" />
+              <pointLight position={[-10, -10, -10]} intensity={0.5} color="#f5f0e8" />
+              <spotLight
+                position={[0, 5, 5]}
+                angle={0.3}
+                penumbra={1}
+                intensity={0.5}
+                color="#c68550"
+              />
+              <FloatingShapes />
+              <OrbitControls
+                enableZoom={false}
+                enablePan={false}
+                autoRotate
+                autoRotateSpeed={0.5}
+                maxPolarAngle={Math.PI / 2}
+                minPolarAngle={Math.PI / 2}
+              />
+            </Canvas>
+          </Suspense>
 
           {/* Ambient glow */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[200px] opacity-20 pointer-events-none"
-            style={{ background: "hsl(var(--copper))" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[180px] opacity-15 pointer-events-none"
+            style={{ background: "hsl(24 50% 55%)" }}
           />
-        </motion.div>
+        </div>
 
         {/* Desktop scroll indicator */}
         <motion.div
@@ -363,7 +382,7 @@ export const SplitHero = () => {
       </section>
 
       {/* Diagonal divider after hero */}
-      <DiagonalDivider direction="right" height={100} />
+      <DiagonalDivider direction="right" height={80} />
     </>
   );
 };
