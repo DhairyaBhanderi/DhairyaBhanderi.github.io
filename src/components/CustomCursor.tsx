@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useSpring, useMotionValue } from "framer-motion";
+import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
 
 interface MagneticElement {
   element: HTMLElement;
@@ -7,7 +7,6 @@ interface MagneticElement {
 }
 
 export const CustomCursor = () => {
-  const cursorRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [cursorText, setCursorText] = useState("");
@@ -15,20 +14,35 @@ export const CustomCursor = () => {
 
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
-  const magneticX = useMotionValue(0);
-  const magneticY = useMotionValue(0);
+  const velocityX = useMotionValue(0);
+  const velocityY = useMotionValue(0);
+  const prevX = useRef(-100);
+  const prevY = useRef(-100);
 
-  const springConfig = { damping: 25, stiffness: 400 };
-  const magneticSpring = { damping: 15, stiffness: 150 };
-  
+  const springConfig = { damping: 20, stiffness: 300 };
+  const slowSpring = { damping: 30, stiffness: 200 };
+
   const cursorXSpring = useSpring(cursorX, springConfig);
   const cursorYSpring = useSpring(cursorY, springConfig);
-  const magneticXSpring = useSpring(magneticX, magneticSpring);
-  const magneticYSpring = useSpring(magneticY, magneticSpring);
+  const trailXSpring = useSpring(cursorX, slowSpring);
+  const trailYSpring = useSpring(cursorY, slowSpring);
+
+  // Velocity-based stretch
+  const velocityXSpring = useSpring(velocityX, { damping: 20, stiffness: 100 });
+  const velocityYSpring = useSpring(velocityY, { damping: 20, stiffness: 100 });
+
+  const scaleX = useTransform(velocityXSpring, [-50, 0, 50], [0.5, 1, 1.5]);
+  const scaleY = useTransform(velocityYSpring, [-50, 0, 50], [0.5, 1, 1.5]);
+  const rotation = useTransform(
+    [velocityXSpring, velocityYSpring],
+    ([vx, vy]: number[]) => Math.atan2(vy, vx) * (180 / Math.PI)
+  );
 
   useEffect(() => {
     let magneticElements: MagneticElement[] = [];
-    const magneticRadius = 100;
+    const magneticRadius = 120;
+    let animationFrame: number;
+    let lastTime = performance.now();
 
     const updateMagneticElements = () => {
       magneticElements = Array.from(
@@ -40,8 +54,24 @@ export const CustomCursor = () => {
     };
 
     const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
+      const now = performance.now();
+      const deltaTime = Math.max(now - lastTime, 1);
+      lastTime = now;
+
+      const newX = e.clientX;
+      const newY = e.clientY;
+
+      // Calculate velocity
+      const vx = ((newX - prevX.current) / deltaTime) * 16;
+      const vy = ((newY - prevY.current) / deltaTime) * 16;
+      velocityX.set(vx);
+      velocityY.set(vy);
+
+      prevX.current = newX;
+      prevY.current = newY;
+
+      cursorX.set(newX);
+      cursorY.set(newY);
 
       // Check for magnetic effect
       let foundMagnetic = false;
@@ -55,16 +85,14 @@ export const CustomCursor = () => {
         if (distance < magneticRadius) {
           foundMagnetic = true;
           const pull = 1 - distance / magneticRadius;
-          magneticX.set(distanceX * pull * 0.4);
-          magneticY.set(distanceY * pull * 0.4);
+          // Move element toward cursor
+          element.style.transform = `translate(${distanceX * pull * 0.3}px, ${distanceY * pull * 0.3}px)`;
           break;
+        } else {
+          element.style.transform = "";
         }
       }
 
-      if (!foundMagnetic) {
-        magneticX.set(0);
-        magneticY.set(0);
-      }
       setIsMagnetic(foundMagnetic);
     };
 
@@ -83,7 +111,11 @@ export const CustomCursor = () => {
         target.closest("[data-cursor='pointer']")
       ) {
         setIsHovering(true);
-        setCursorText(target.dataset.cursorText || target.closest("[data-cursor-text]")?.getAttribute("data-cursor-text") || "");
+        setCursorText(
+          target.dataset.cursorText ||
+            target.closest("[data-cursor-text]")?.getAttribute("data-cursor-text") ||
+            ""
+        );
       }
     };
 
@@ -92,7 +124,6 @@ export const CustomCursor = () => {
       setCursorText("");
     };
 
-    // Update magnetic elements on scroll
     const handleScroll = () => {
       updateMagneticElements();
     };
@@ -106,7 +137,6 @@ export const CustomCursor = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", updateMagneticElements);
 
-    // Update periodically for dynamic content
     const interval = setInterval(updateMagneticElements, 1000);
 
     return () => {
@@ -118,33 +148,44 @@ export const CustomCursor = () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", updateMagneticElements);
       clearInterval(interval);
+      if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [cursorX, cursorY, magneticX, magneticY]);
+  }, [cursorX, cursorY, velocityX, velocityY]);
 
   // Hide on touch devices
-  const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
+  const isTouchDevice =
+    typeof window !== "undefined" && "ontouchstart" in window;
   if (isTouchDevice) return null;
 
-  // Get ring size based on state
-  const getRingSize = () => {
-    if (isHovering) return 100;
-    if (isMagnetic) return 60;
-    return 40;
-  };
-
-  // Get dot size based on state
-  const getDotSize = () => {
+  const getBlobSize = () => {
     if (isHovering) return 80;
-    if (isClicking) return 8;
-    if (isMagnetic) return 16;
-    return 12;
+    if (isClicking) return 16;
+    if (isMagnetic) return 40;
+    return 24;
   };
 
   return (
     <>
-      {/* Main cursor dot */}
+      {/* Trailing blob */}
       <motion.div
-        ref={cursorRef}
+        className="fixed top-0 left-0 pointer-events-none z-[9997]"
+        style={{
+          x: trailXSpring,
+          y: trailYSpring,
+        }}
+      >
+        <motion.div
+          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/20"
+          animate={{
+            width: getBlobSize() * 2,
+            height: getBlobSize() * 2,
+          }}
+          transition={{ type: "spring", damping: 15, stiffness: 100 }}
+        />
+      </motion.div>
+
+      {/* Main morphing blob cursor */}
+      <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference"
         style={{
           x: cursorXSpring,
@@ -152,18 +193,45 @@ export const CustomCursor = () => {
         }}
       >
         <motion.div
-          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground"
-          animate={{
-            width: getDotSize(),
-            height: getDotSize(),
+          className="relative -translate-x-1/2 -translate-y-1/2"
+          style={{
+            rotate: rotation,
           }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
         >
+          <motion.svg
+            width={getBlobSize() * 2}
+            height={getBlobSize() * 2}
+            viewBox="0 0 100 100"
+            animate={{
+              width: getBlobSize() * 2,
+              height: getBlobSize() * 2,
+            }}
+            transition={{ type: "spring", damping: 15, stiffness: 200 }}
+          >
+            <motion.ellipse
+              cx="50"
+              cy="50"
+              fill="hsl(var(--foreground))"
+              animate={{
+                rx: isClicking ? 20 : isHovering ? 45 : 40,
+                ry: isClicking ? 20 : isHovering ? 45 : 40,
+              }}
+              style={{
+                scaleX,
+                scaleY,
+                transformOrigin: "center",
+              }}
+              transition={{ type: "spring", damping: 15, stiffness: 200 }}
+            />
+          </motion.svg>
+
+          {/* Cursor text */}
           {cursorText && (
             <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex items-center justify-center text-background text-xs font-body font-medium uppercase tracking-wider"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute inset-0 flex items-center justify-center text-background text-[10px] font-body font-bold uppercase tracking-widest"
             >
               {cursorText}
             </motion.span>
@@ -171,7 +239,7 @@ export const CustomCursor = () => {
         </motion.div>
       </motion.div>
 
-      {/* Cursor ring with magnetic effect */}
+      {/* Absorption effect ring */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9998]"
         style={{
@@ -180,19 +248,14 @@ export const CustomCursor = () => {
         }}
       >
         <motion.div
-          className={`relative -translate-x-1/2 -translate-y-1/2 rounded-full border transition-colors duration-200 ${
-            isMagnetic ? "border-accent" : "border-foreground/30"
-          }`}
-          style={{
-            x: magneticXSpring,
-            y: magneticYSpring,
-          }}
+          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent/50"
           animate={{
-            width: getRingSize(),
-            height: getRingSize(),
-            opacity: isHovering ? 0.5 : isMagnetic ? 0.6 : 0.3,
+            width: isHovering ? 100 : isMagnetic ? 70 : 50,
+            height: isHovering ? 100 : isMagnetic ? 70 : 50,
+            opacity: isHovering ? 0.8 : isMagnetic ? 0.6 : 0,
+            borderWidth: isHovering ? 2 : 1,
           }}
-          transition={{ type: "spring", damping: 15, stiffness: 150 }}
+          transition={{ type: "spring", damping: 20, stiffness: 150 }}
         />
       </motion.div>
 
