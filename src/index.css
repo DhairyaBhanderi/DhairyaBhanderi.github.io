@@ -57,9 +57,11 @@
     --gradient-hero: radial-gradient(ellipse at 50% 0%, hsl(240 6% 12%) 0%, hsl(240 6% 4%) 70%);
     --gradient-copper: linear-gradient(135deg, hsl(24 50% 55%) 0%, hsl(24 60% 45%) 100%);
     --gradient-fade: linear-gradient(180deg, transparent 0%, hsl(240 6% 4%) 100%);
+    --gradient-radial: radial-gradient(ellipse at center, transparent 0%, hsl(240 6% 4% / 0.9) 70%);
 
     /* Shadows */
     --shadow-glow: 0 0 60px hsl(24 50% 55% / 0.15);
+    --shadow-glow-lg: 0 0 120px hsl(24 50% 55% / 0.25);
     --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
 
     /* Transitions */
@@ -119,14 +121,28 @@
 }
 
 @layer components {
-  /* Film grain overlay */
+  /* Film grain overlay - animated */
   .grain-overlay {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.03;
+    opacity: 0.04;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    animation: grain 0.5s steps(10) infinite;
+  }
+
+  @keyframes grain {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-1%, -1%); }
+    20% { transform: translate(1%, 1%); }
+    30% { transform: translate(-1%, 1%); }
+    40% { transform: translate(1%, -1%); }
+    50% { transform: translate(-1%, 0); }
+    60% { transform: translate(1%, 0); }
+    70% { transform: translate(0, 1%); }
+    80% { transform: translate(0, -1%); }
+    90% { transform: translate(1%, 1%); }
   }
 
   /* Text gradient */
@@ -140,6 +156,15 @@
   /* Glow effect */
   .glow-copper {
     box-shadow: var(--shadow-glow);
+  }
+
+  .glow-copper-lg {
+    box-shadow: var(--shadow-glow-lg);
+  }
+
+  /* Radial gradient background */
+  .bg-gradient-radial {
+    background: var(--gradient-radial);
   }
 
   /* Underline animation for links */
@@ -163,6 +188,15 @@
   .link-underline:hover::after {
     transform: scaleX(1);
     transform-origin: left;
+  }
+
+  /* Magnetic button base */
+  .magnetic-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
