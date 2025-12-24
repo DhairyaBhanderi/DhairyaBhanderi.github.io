@@ -17,7 +17,7 @@ export const ContactFinale = () => {
   const gradientX = useTransform(x, [0, 1], [30, 70]);
   const gradientY = useTransform(y, [0, 1], [30, 70]);
 
-  const email = "dhairya.work48@gmail.com";
+  const email = "dhairya.yml@gmail.com";
 
   const handleCopy = async () => {
     try {

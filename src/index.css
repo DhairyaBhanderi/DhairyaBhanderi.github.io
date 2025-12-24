@@ -49,6 +49,18 @@
     --charcoal: 240 6% 4%;
     --charcoal-light: 240 5% 10%;
 
+    /* Extended palette for sections */
+    --teal: 180 45% 45%;
+    --teal-glow: 180 55% 55%;
+    --purple: 270 45% 50%;
+    --purple-glow: 270 55% 60%;
+    --deep-blue: 220 55% 45%;
+    --deep-blue-glow: 220 65% 55%;
+    --emerald: 150 50% 45%;
+    --emerald-glow: 150 60% 55%;
+    --rose: 350 50% 55%;
+    --rose-glow: 350 60% 65%;
+
     /* Typography */
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', system-ui, sans-serif;

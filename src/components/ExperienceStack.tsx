@@ -6,50 +6,103 @@ interface Experience {
   role: string;
   company: string;
   period: string;
+  location: string;
   description: string;
   highlights: string[];
   details?: string[];
+  colorClass?: string;
 }
 
 const experiences: Experience[] = [
   {
     id: "qualitest",
-    role: "AI Automation Engineer",
-    company: "Qualitest Global",
-    period: "2025 — Present",
-    description: "Building enterprise-scale AI automation systems and MCP ecosystem.",
-    highlights: ["MCP Ecosystem", "Enterprise AI", "Automation Pipelines"],
+    role: "AI Automation Engineer (GenAI & MCP Ecosystem)",
+    company: "Qualitest Group",
+    period: "Jun 2025 — Present",
+    location: "USA",
+    description: "Designing and implementing complete Model Context Protocol stacks and high-throughput JSON-RPC 2.0 servers for LLM automation.",
+    highlights: ["MCP Ecosystem", "JSON-RPC 2.0", "Selenium/Playwright"],
     details: [
-      "Architected MCP-based automation framework serving 50+ enterprise clients",
-      "Reduced manual testing time by 80% through intelligent automation",
-      "Led cross-functional team of 8 engineers",
+      "Reduced manual workflows by 70% and increased automation coverage by 40%",
+      "Built Claude-style LLM UI with React, TypeScript, Tailwind, Framer Motion",
+      "Deployed MCP stack for QA, DevOps, and MLOps orchestration",
+      "Implemented circuit breakers, recovery mechanisms, and structured logging",
     ],
+    colorClass: "from-copper/20 via-copper-glow/10",
   },
   {
     id: "pronoesis",
-    role: "AI Engineer",
+    role: "AI & Cybersecurity Intern",
     company: "ProNoesis",
-    period: "2024 — 2025",
-    description: "Developed LLM-powered threat analysis and legal document processing systems.",
-    highlights: ["LLM Threat Assistant", "Legal AI", "RAG Systems"],
+    period: "Mar 2025 — May 2025",
+    location: "Columbus, Ohio",
+    description: "Built LLM-powered security assistant improving analyst response speed by 35%.",
+    highlights: ["LangChain", "OpenAI API", "FastAPI", "Docker"],
     details: [
-      "Built RAG system processing 10,000+ legal documents daily",
-      "Implemented threat detection with 95% accuracy",
-      "Deployed production LLM infrastructure on AWS",
+      "92% accuracy on insider threat detection ML models",
+      "95% precision on phishing email classification with BERT",
+      "Prototyped Zero-Trust IAM/RBAC policy generator",
+      "Deployed FastAPI microservices with Docker containerization",
     ],
+    colorClass: "from-deep-blue/20 via-deep-blue-glow/10",
   },
   {
-    id: "education",
-    role: "MS Computer Science",
-    company: "University of Dayton",
-    period: "2023 — 2024",
-    description: "Specialized in AI/ML and distributed systems.",
-    highlights: ["Machine Learning", "Distributed Systems", "Research"],
+    id: "sharvaya",
+    role: "Junior Developer Intern",
+    company: "Sharvaya Infotech",
+    period: "Jan 2022 — Jun 2022",
+    location: "India",
+    description: "Optimized ML data pipelines and built ticket classifier achieving 97% precision.",
+    highlights: ["Python", "FastAPI", "BERT", "GitHub Actions"],
     details: [
-      "GPA: 3.9/4.0",
-      "Research focus: Large Language Models",
-      "Teaching Assistant for Advanced Algorithms",
+      "Reduced batch runtime by 40% with optimized data-prep scripts",
+      "97% precision on urgent ticket routing with fine-tuned BERT",
+      "Reduced release rollbacks by 90% with CI/CD automation",
+      "Integrated Python classifier with legacy ASP.NET MVC modules",
     ],
+    colorClass: "from-teal/20 via-teal-glow/10",
+  },
+  {
+    id: "imageweb",
+    role: "ML Intern",
+    company: "Image Web Solution",
+    period: "Jul 2020 — Dec 2020",
+    location: "India",
+    description: "Built TensorFlow.js recommender and auto-tagging pipeline with serverless inference.",
+    highlights: ["TensorFlow.js", "FastText", "Azure Functions"],
+    details: [
+      "Increased average session length by 18% with real-time recommendations",
+      "Reduced manual tagging hours by 70% with auto-tagging pipeline",
+      "Sub-300ms latency serverless inference on Azure Functions",
+    ],
+    colorClass: "from-purple/20 via-purple-glow/10",
+  },
+  {
+    id: "education-ud",
+    role: "Master of Science, Computer Science",
+    company: "University of Dayton",
+    period: "Jan 2023 — Dec 2024",
+    location: "Dayton, Ohio",
+    description: "GPA: 3.5 — Focus on AI/ML, Big Data, and Cloud Computing.",
+    highlights: ["Machine Learning", "Big Data", "Cloud Computing"],
+    details: [
+      "Graduate Capstone: Big Data Security Analytics",
+      "Courses: Advanced ML, Distributed Systems, Data Engineering",
+    ],
+    colorClass: "from-emerald/20 via-emerald-glow/10",
+  },
+  {
+    id: "education-nu",
+    role: "Bachelor of Technology, Information Technology",
+    company: "Navrachana University",
+    period: "Jun 2018 — May 2022",
+    location: "Vadodara, India",
+    description: "GPA: 3.7 — Strong foundation in software engineering and programming.",
+    highlights: ["Programming", "Data Structures", "Software Engineering"],
+    details: [
+      "Core courses in algorithms, databases, and system design",
+    ],
+    colorClass: "from-rose/20 via-rose-glow/10",
   },
 ];
 
@@ -120,11 +173,15 @@ const ExperienceCard = ({
           bg-card/90 backdrop-blur-md cursor-pointer
           shadow-[0_-20px_60px_-20px_hsl(var(--background))]
           hover:border-accent/30 transition-colors duration-300
+          overflow-hidden
         `}
         whileHover={{ scale: 1.01 }}
         data-cursor="pointer"
         data-cursor-text="View"
       >
+        {/* Color gradient overlay based on company */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${experience.colorClass || 'from-accent/10 via-transparent'} to-transparent opacity-50 pointer-events-none`} />
+
         {/* Glow effect on hover */}
         <motion.div
           className="absolute inset-0 rounded-sm opacity-0 pointer-events-none"
@@ -141,10 +198,15 @@ const ExperienceCard = ({
             zIndex: experiences.length - index,
           }}
         >
-          {/* Period badge */}
-          <span className="inline-block px-3 py-1 text-xs font-mono text-accent bg-accent/10 rounded-sm mb-6">
-            {experience.period}
-          </span>
+          {/* Period badge + Location */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            <span className="inline-block px-3 py-1 text-xs font-mono text-accent bg-accent/10 rounded-sm">
+              {experience.period}
+            </span>
+            <span className="text-xs font-mono text-muted-foreground">
+              📍 {experience.location}
+            </span>
+          </div>
 
           {/* Role & Company */}
           <h3 className="font-display text-2xl md:text-4xl text-foreground mb-2">

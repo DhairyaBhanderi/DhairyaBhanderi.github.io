@@ -5,29 +5,62 @@ import { useRef, useState } from "react";
 interface Skill {
   name: string;
   context: string;
-  category: "ai" | "backend" | "devops" | "frontend";
+  category: "ai" | "backend" | "devops" | "frontend" | "tools";
 }
 
 const skills: Skill[] = [
-  { name: "Python", context: "LLM pipelines, FastAPI services", category: "ai" },
+  // AI/ML/GenAI
   { name: "LangChain", context: "Agent orchestration, RAG systems", category: "ai" },
+  { name: "OpenAI API", context: "GPT integration, embeddings", category: "ai" },
+  { name: "PyTorch", context: "Deep learning, model training", category: "ai" },
+  { name: "Scikit-learn", context: "Classical ML, preprocessing", category: "ai" },
+  { name: "BERT", context: "NLU, text classification", category: "ai" },
+  { name: "BART", context: "Text summarization", category: "ai" },
+  { name: "FAISS", context: "Vector similarity search", category: "ai" },
+  { name: "XGBoost", context: "Gradient boosting, classification", category: "ai" },
+  { name: "TensorFlow.js", context: "Browser-based ML inference", category: "ai" },
+  
+  // Languages & Frameworks
+  { name: "Python", context: "LLM pipelines, FastAPI services", category: "backend" },
+  { name: "Java", context: "Spring Boot microservices", category: "backend" },
   { name: "FastAPI", context: "High-performance APIs", category: "backend" },
+  { name: "Spring Boot", context: "Enterprise Java applications", category: "backend" },
+  { name: "Flask", context: "Lightweight web apps", category: "backend" },
+  { name: "SQLAlchemy", context: "ORM, database management", category: "backend" },
+  
+  // Cloud & DevOps
+  { name: "AWS", context: "SageMaker, Lambda, S3", category: "devops" },
+  { name: "Docker", context: "Containerized deployments", category: "devops" },
+  { name: "GitHub Actions", context: "CI/CD automation", category: "devops" },
+  { name: "Azure", context: "Functions, App Service", category: "devops" },
+  { name: "Kafka", context: "Event streaming, pipelines", category: "devops" },
+  { name: "Spark", context: "Distributed data processing", category: "devops" },
+  
+  // Frontend & UI
   { name: "React", context: "Interactive dashboards", category: "frontend" },
   { name: "TypeScript", context: "Type-safe applications", category: "frontend" },
-  { name: "Docker", context: "Containerized deployments", category: "devops" },
-  { name: "Kubernetes", context: "Orchestration at scale", category: "devops" },
-  { name: "AWS", context: "Cloud infrastructure", category: "devops" },
-  { name: "PostgreSQL", context: "Vector DBs, data persistence", category: "backend" },
-  { name: "TensorFlow", context: "ML model training", category: "ai" },
-  { name: "Redis", context: "Caching, message queues", category: "backend" },
-  { name: "GraphQL", context: "Flexible data fetching", category: "backend" },
+  { name: "Tailwind CSS", context: "Utility-first styling", category: "frontend" },
+  { name: "Framer Motion", context: "Animations, transitions", category: "frontend" },
+  { name: "Streamlit", context: "Rapid ML prototypes", category: "frontend" },
+  
+  // Automation & MCP
+  { name: "MCP", context: "Model Context Protocol servers", category: "tools" },
+  { name: "JSON-RPC 2.0", context: "High-throughput LLM execution", category: "tools" },
+  { name: "Selenium", context: "Browser automation", category: "tools" },
+  { name: "Playwright", context: "Modern web testing", category: "tools" },
+  
+  // AI Dev Tools
+  { name: "Cursor", context: "AI-powered IDE", category: "tools" },
+  { name: "GitHub Copilot", context: "AI pair programming", category: "tools" },
+  { name: "Warp", context: "AI terminal", category: "tools" },
 ];
 
 const categoryColors: Record<string, string> = {
-  ai: "text-accent",
-  backend: "text-foreground",
-  devops: "text-muted-foreground",
-  frontend: "text-foreground/80",
+  ai: "text-copper",
+  backend: "text-deep-blue",
+  devops: "text-teal",
+  frontend: "text-purple",
+  tools: "text-emerald",
 };
 
 const SkillItem = ({ skill, index }: { skill: Skill; index: number }) => {
@@ -116,16 +149,24 @@ export const SkillsGrid = () => {
           className="mt-12 flex flex-wrap gap-6 text-xs font-mono text-muted-foreground"
         >
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-accent" />
+            <span className="w-2 h-2 rounded-full bg-copper" />
             AI/ML
           </span>
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-foreground" />
+            <span className="w-2 h-2 rounded-full bg-deep-blue" />
             Backend
           </span>
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+            <span className="w-2 h-2 rounded-full bg-teal" />
             DevOps
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-purple" />
+            Frontend
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald" />
+            Tools
           </span>
         </motion.div>
       </div>
