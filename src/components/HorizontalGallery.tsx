@@ -205,35 +205,42 @@ export const HorizontalGallery = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (!containerRef.current || !scrollContainerRef.current) return;
+    // Wait for DOM to be ready
+    const timer = setTimeout(() => {
+      if (!containerRef.current || !scrollContainerRef.current) return;
 
-    const scrollContainer = scrollContainerRef.current;
-    const totalWidth = scrollContainer.scrollWidth - window.innerWidth;
+      const scrollContainer = scrollContainerRef.current;
+      const totalWidth = scrollContainer.scrollWidth - window.innerWidth;
 
-    const ctx = gsap.context(() => {
-      // Horizontal scroll animation
-      gsap.to(scrollContainer, {
-        x: -totalWidth,
-        ease: "none",
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: `+=${totalWidth}`,
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const newIndex = Math.min(
-              Math.floor(self.progress * projects.length),
-              projects.length - 1
-            );
-            setActiveIndex(newIndex);
+      if (totalWidth <= 0) return;
+
+      const ctx = gsap.context(() => {
+        // Horizontal scroll animation
+        gsap.to(scrollContainer, {
+          x: -totalWidth,
+          ease: "none",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top top",
+            end: `+=${totalWidth}`,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            onUpdate: (self) => {
+              const newIndex = Math.min(
+                Math.floor(self.progress * projects.length),
+                projects.length - 1
+              );
+              setActiveIndex(newIndex);
+            },
           },
-        },
-      });
-    }, containerRef);
+        });
+      }, containerRef);
 
-    return () => ctx.revert();
+      return () => ctx.revert();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (

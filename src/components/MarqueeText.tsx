@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, forwardRef } from "react";
 import { motion, useAnimationFrame, useMotionValue } from "framer-motion";
 
 interface MarqueeTextProps {
@@ -61,24 +61,29 @@ interface MarqueeStackProps {
   className?: string;
 }
 
-export const MarqueeStack = ({ items, className = "" }: MarqueeStackProps) => {
-  return (
-    <div className={`relative py-6 overflow-hidden ${className}`}>
-      {/* Background layer - fastest, most transparent */}
-      <div className="opacity-15 scale-105 mb-3">
-        <MarqueeText items={items} speed={70} direction="right" separator="◆" />
-      </div>
-      
-      {/* Foreground layer - slowest, most visible */}
-      <div className="opacity-60">
-        <MarqueeText items={items} speed={35} direction="left" separator="—" />
-      </div>
+// Using forwardRef to prevent React warnings when used inside motion components
+export const MarqueeStack = forwardRef<HTMLDivElement, MarqueeStackProps>(
+  ({ items, className = "" }, ref) => {
+    return (
+      <div ref={ref} className={`relative py-6 overflow-hidden ${className}`}>
+        {/* Background layer - fastest, most transparent */}
+        <div className="opacity-15 scale-105 mb-3">
+          <MarqueeText items={items} speed={70} direction="right" separator="◆" />
+        </div>
+        
+        {/* Foreground layer - slowest, most visible */}
+        <div className="opacity-60">
+          <MarqueeText items={items} speed={35} direction="left" separator="—" />
+        </div>
 
-      {/* Gradient fades on edges */}
-      <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
-      <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
-    </div>
-  );
-};
+        {/* Gradient fades on edges */}
+        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+      </div>
+    );
+  }
+);
+
+MarqueeStack.displayName = "MarqueeStack";
 
 export default MarqueeText;

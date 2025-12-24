@@ -76,30 +76,37 @@ export const JourneyTimeline = () => {
   const pathRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !pathRef.current) return;
+    // Wait for DOM to be ready
+    const timer = setTimeout(() => {
+      if (!containerRef.current || !pathRef.current) return;
 
-    const path = pathRef.current;
-    const pathLength = path.getTotalLength();
+      const path = pathRef.current;
+      const pathLength = path.getTotalLength();
 
-    gsap.set(path, {
-      strokeDasharray: pathLength,
-      strokeDashoffset: pathLength,
-    });
+      if (pathLength <= 0) return;
 
-    const ctx = gsap.context(() => {
-      gsap.to(path, {
-        strokeDashoffset: 0,
-        ease: "none",
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 80%",
-          end: "bottom 20%",
-          scrub: 1,
-        },
+      gsap.set(path, {
+        strokeDasharray: pathLength,
+        strokeDashoffset: pathLength,
       });
-    }, containerRef);
 
-    return () => ctx.revert();
+      const ctx = gsap.context(() => {
+        gsap.to(path, {
+          strokeDashoffset: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 80%",
+            end: "bottom 20%",
+            scrub: 1,
+          },
+        });
+      }, containerRef);
+
+      return () => ctx.revert();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
