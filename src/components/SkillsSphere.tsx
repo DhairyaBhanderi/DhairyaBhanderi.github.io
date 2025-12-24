@@ -78,14 +78,13 @@ const SkillNode = ({ skill, position, onHover }: SkillNodeProps) => {
           />
         </mesh>
 
-        {/* Skill label */}
+        {/* Skill label - using default font */}
         <Text
           position={[0, 0.35, 0]}
           fontSize={0.12}
           color={hovered ? "#ffffff" : "#888888"}
           anchorX="center"
           anchorY="middle"
-          font="/fonts/inter-medium.woff"
         >
           {skill.name}
         </Text>
