@@ -1,8 +1,58 @@
 import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Copy, Check, Mail, Github, Linkedin } from "lucide-react";
+import MagneticButton from "./MagneticButton";
 
 const email = "dhairya.work48@gmail.com";
+
+// Animated signature SVG path
+const SignaturePath = () => {
+  const pathRef = useRef<SVGPathElement>(null);
+  const isInView = useInView(pathRef, { once: true });
+
+  useEffect(() => {
+    if (!pathRef.current || !isInView) return;
+    
+    const path = pathRef.current;
+    const length = path.getTotalLength();
+    
+    path.style.strokeDasharray = `${length}`;
+    path.style.strokeDashoffset = `${length}`;
+    path.style.animation = "draw-signature 2s ease-out forwards";
+  }, [isInView]);
+
+  return (
+    <svg
+      viewBox="0 0 200 60"
+      className="w-48 h-16 mx-auto mt-12"
+      fill="none"
+    >
+      <path
+        ref={pathRef}
+        d="M10 40 C20 10, 40 10, 50 30 S70 50, 80 30 S100 10, 120 30 S150 50, 170 25 L190 25"
+        stroke="url(#signature-gradient)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <defs>
+        <linearGradient id="signature-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="hsl(28, 85%, 55%)" />
+          <stop offset="100%" stopColor="hsl(28, 85%, 70%)" />
+        </linearGradient>
+      </defs>
+      <style>
+        {`
+          @keyframes draw-signature {
+            to {
+              stroke-dashoffset: 0;
+            }
+          }
+        `}
+      </style>
+    </svg>
+  );
+};
 
 export const ContactSection = () => {
   const ref = useRef(null);
@@ -53,63 +103,76 @@ export const ContactSection = () => {
           Whether it's building intelligent automation systems or exploring new AI frontiers—let's create something impactful together.
         </motion.p>
 
-        {/* Email with copy */}
+        {/* Email with copy - Magnetic */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mb-12"
         >
-          <button
-            onClick={handleCopy}
-            className="group inline-flex items-center gap-3 px-6 py-4 bg-secondary/50 border border-border rounded-full hover:border-accent/50 hover:bg-secondary transition-all duration-300"
-          >
-            <Mail className="w-5 h-5 text-accent" />
-            <span className="font-body text-foreground">{email}</span>
-            {copied ? (
-              <Check className="w-4 h-4 text-green-500" />
-            ) : (
-              <Copy className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
-            )}
-          </button>
+          <MagneticButton strength={0.3}>
+            <button
+              onClick={handleCopy}
+              className="group inline-flex items-center gap-3 px-6 py-4 bg-secondary/50 border border-border rounded-full hover:border-accent/50 hover:bg-secondary transition-all duration-300"
+            >
+              <Mail className="w-5 h-5 text-accent" />
+              <span className="font-body text-foreground">{email}</span>
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
+              )}
+            </button>
+          </MagneticButton>
         </motion.div>
 
-        {/* Social links */}
+        {/* Social links - Magnetic */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.4 }}
           className="flex items-center justify-center gap-6"
         >
-          <SocialLink href="https://github.com" icon={<Github className="w-5 h-5" />} label="GitHub" />
-          <SocialLink href="https://linkedin.com" icon={<Linkedin className="w-5 h-5" />} label="LinkedIn" />
+          <MagneticButton strength={0.4}>
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="GitHub"
+            >
+              <Github className="w-5 h-5" />
+              <span className="font-body text-sm">GitHub</span>
+            </a>
+          </MagneticButton>
+          <MagneticButton strength={0.4}>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="LinkedIn"
+            >
+              <Linkedin className="w-5 h-5" />
+              <span className="font-body text-sm">LinkedIn</span>
+            </a>
+          </MagneticButton>
+        </motion.div>
+
+        {/* Animated Signature */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <SignaturePath />
+          <p className="text-muted-foreground/50 font-display text-sm mt-2 italic">
+            ~ Dhairya ~
+          </p>
         </motion.div>
       </div>
     </section>
   );
 };
-
-const SocialLink = ({ 
-  href, 
-  icon, 
-  label 
-}: { 
-  href: string; 
-  icon: React.ReactNode; 
-  label: string;
-}) => (
-  <motion.a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-    aria-label={label}
-  >
-    {icon}
-    <span className="font-body text-sm">{label}</span>
-  </motion.a>
-);
 
 export default ContactSection;

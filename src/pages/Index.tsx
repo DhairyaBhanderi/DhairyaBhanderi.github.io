@@ -5,10 +5,13 @@ import ScrollProgress from "@/components/ScrollProgress";
 import SplitHero from "@/components/SplitHero";
 import { MarqueeStack } from "@/components/MarqueeText";
 import ManifestoSection from "@/components/ManifestoSection";
-import ProjectShowcase from "@/components/ProjectShowcase";
+import HorizontalGallery from "@/components/HorizontalGallery";
+import SkillsSphere from "@/components/SkillsSphere";
+import JourneyTimeline from "@/components/JourneyTimeline";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import Preloader from "@/components/Preloader";
+import DiagonalDivider from "@/components/DiagonalDivider";
 
 const techStack = [
   "Python",
@@ -49,8 +52,22 @@ const Index = () => {
             <MarqueeStack items={techStack} />
           </section>
 
+          <DiagonalDivider />
+
           <ManifestoSection />
-          <ProjectShowcase />
+
+          <DiagonalDivider direction="right" />
+
+          <HorizontalGallery />
+
+          <DiagonalDivider />
+
+          <SkillsSphere />
+
+          <DiagonalDivider direction="right" />
+
+          <JourneyTimeline />
+
           <ContactSection />
         </main>
 
