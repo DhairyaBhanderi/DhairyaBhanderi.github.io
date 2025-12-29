@@ -1,22 +1,88 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 
 interface Certification {
   id: string;
   name: string;
+  shortName: string;
   issuer: string;
   category: "aws" | "ai" | "data" | "cloud";
   year: string;
+  color: string;
+  description: string;
 }
 
 const certifications: Certification[] = [
-  { id: "aws-saa", name: "Solutions Architect", issuer: "AWS", category: "aws", year: "2025" },
-  { id: "aws-ai", name: "AI Practitioner", issuer: "AWS", category: "aws", year: "2025" },
-  { id: "aws-cp", name: "Cloud Practitioner", issuer: "AWS", category: "aws", year: "2025" },
-  { id: "ibm-ds", name: "Data Science Professional", issuer: "IBM", category: "data", year: "2023" },
-  { id: "python-ml", name: "Python ML", issuer: "Udemy", category: "ai", year: "2023" },
-  { id: "intro-ai", name: "AI Fundamentals", issuer: "edX", category: "ai", year: "2023" },
-  { id: "azure-ai", name: "Azure AI-900", issuer: "Microsoft", category: "cloud", year: "2022" },
+  { 
+    id: "aws-saa", 
+    name: "Solutions Architect Associate", 
+    shortName: "SAA",
+    issuer: "Amazon Web Services", 
+    category: "aws", 
+    year: "2025",
+    color: "#FF9900",
+    description: "Design distributed systems on AWS"
+  },
+  { 
+    id: "aws-ai", 
+    name: "AI Practitioner", 
+    shortName: "AI",
+    issuer: "Amazon Web Services", 
+    category: "aws", 
+    year: "2025",
+    color: "#FF9900",
+    description: "AI/ML services on AWS cloud"
+  },
+  { 
+    id: "aws-cp", 
+    name: "Cloud Practitioner", 
+    shortName: "CP",
+    issuer: "Amazon Web Services", 
+    category: "aws", 
+    year: "2025",
+    color: "#FF9900",
+    description: "Cloud fundamentals & best practices"
+  },
+  { 
+    id: "ibm-ds", 
+    name: "Data Science Professional", 
+    shortName: "DS",
+    issuer: "IBM", 
+    category: "data", 
+    year: "2023",
+    color: "#0F62FE",
+    description: "End-to-end data science pipelines"
+  },
+  { 
+    id: "python-ml", 
+    name: "Python for Machine Learning", 
+    shortName: "ML",
+    issuer: "Udemy", 
+    category: "ai", 
+    year: "2023",
+    color: "#A435F0",
+    description: "ML algorithms & implementation"
+  },
+  { 
+    id: "intro-ai", 
+    name: "Introduction to AI", 
+    shortName: "AI",
+    issuer: "edX", 
+    category: "ai", 
+    year: "2023",
+    color: "#02262B",
+    description: "AI fundamentals & applications"
+  },
+  { 
+    id: "azure-ai", 
+    name: "Azure AI Fundamentals", 
+    shortName: "AI-900",
+    issuer: "Microsoft", 
+    category: "cloud", 
+    year: "2022",
+    color: "#0078D4",
+    description: "Azure AI & cognitive services"
+  },
 ];
 
 const AnimatedCounter = ({ target }: { target: number }) => {
@@ -37,9 +103,11 @@ const AnimatedCounter = ({ target }: { target: number }) => {
           if (start >= target) clearInterval(timer);
         }, stepTime);
       }}
-      className="font-display font-bold text-[15vw] md:text-[12vw] lg:text-[10vw] text-foreground leading-none tracking-tighter"
+      className="font-display font-bold leading-none tracking-tighter"
+      style={{ fontSize: "clamp(8rem, 20vw, 16rem)" }}
     >
-      0{count}
+      <span className="text-foreground">0</span>
+      <span className="text-accent">{count}</span>
     </motion.div>
   );
 };
@@ -53,7 +121,7 @@ export const CredentialsWall = () => {
     offset: ["start end", "end start"],
   });
 
-  const x = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  const x = useTransform(scrollYProgress, [0, 1], [100, -200]);
 
   const awsCerts = certifications.filter(c => c.category === "aws");
   const otherCerts = certifications.filter(c => c.category !== "aws");
@@ -71,8 +139,8 @@ export const CredentialsWall = () => {
       </div>
 
       <div className="container mx-auto px-6 md:px-12 relative z-10">
-        {/* Header row with counter */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-20">
+        {/* Header row with massive counter */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-24">
           {/* Left: Counter */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -81,7 +149,7 @@ export const CredentialsWall = () => {
             transition={{ duration: 0.8 }}
           >
             <AnimatedCounter target={7} />
-            <span className="block font-mono text-xs text-muted-foreground tracking-widest uppercase mt-4">
+            <span className="block font-mono text-sm text-muted-foreground tracking-widest uppercase mt-4">
               Industry Certifications
             </span>
           </motion.div>
@@ -95,29 +163,33 @@ export const CredentialsWall = () => {
             className="flex flex-col justify-end"
           >
             <span className="text-accent font-mono text-xs tracking-widest uppercase block mb-4">
-              Credentials
+              Validated Expertise
             </span>
-            <p className="text-muted-foreground font-body text-sm md:text-base max-w-md">
-              Validated expertise across cloud architecture, AI/ML, and enterprise data systems.
+            <p className="text-muted-foreground font-body text-base md:text-lg max-w-md leading-relaxed">
+              Proven competency across cloud architecture, AI/ML engineering, and enterprise data systems — backed by industry-recognized credentials.
             </p>
           </motion.div>
         </div>
 
-        {/* AWS Cluster - Premium treatment */}
+        {/* AWS Cluster - Premium treatment with logos */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16"
+          className="mb-20"
         >
-          <div className="flex items-center gap-3 mb-8">
-            <span className="px-3 py-1 text-xs font-mono bg-[#FF9900]/10 text-[#FF9900] border border-[#FF9900]/30 rounded-sm">
-              AWS
-            </span>
-            <div className="flex-1 h-px bg-border/20" />
+          <div className="flex items-center gap-4 mb-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-sm bg-[#FF9900]/10 border border-[#FF9900]/30 flex items-center justify-center">
+                <span className="font-bold text-[#FF9900] text-sm">AWS</span>
+              </div>
+              <span className="font-heading text-lg text-foreground">Amazon Web Services</span>
+            </div>
+            <div className="flex-1 h-px bg-[#FF9900]/20" />
+            <span className="font-mono text-xs text-[#FF9900]">3 CERTIFICATIONS</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {awsCerts.map((cert, i) => (
               <motion.div
                 key={cert.id}
@@ -128,23 +200,41 @@ export const CredentialsWall = () => {
                 onMouseEnter={() => setHoveredCert(cert.id)}
                 onMouseLeave={() => setHoveredCert(null)}
                 className={`
-                  relative p-6 border border-[#FF9900]/20 rounded-sm
-                  bg-gradient-to-br from-[#FF9900]/5 to-transparent
-                  transition-all duration-300 cursor-default
-                  ${hoveredCert === cert.id ? 'border-[#FF9900]/50 shadow-lg shadow-[#FF9900]/10' : ''}
+                  relative p-8 border rounded-sm cursor-default group
+                  transition-all duration-500
+                  ${hoveredCert === cert.id 
+                    ? 'border-[#FF9900]/60 bg-[#FF9900]/10 shadow-lg shadow-[#FF9900]/20' 
+                    : 'border-[#FF9900]/20 bg-gradient-to-br from-[#FF9900]/5 to-transparent'}
                 `}
               >
-                <span className="block font-heading text-lg md:text-xl text-foreground mb-2">
-                  {cert.name}
-                </span>
-                <span className="text-xs font-mono text-muted-foreground">
-                  {cert.year}
-                </span>
+                {/* Badge */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-sm bg-[#FF9900]/20 border border-[#FF9900]/40 flex items-center justify-center">
+                    <span className="font-bold text-[#FF9900] text-lg">{cert.shortName}</span>
+                  </div>
+                  <span className="text-xs font-mono text-[#FF9900]/70">{cert.year}</span>
+                </div>
 
-                {/* Glow on hover */}
+                <h3 className="font-heading text-xl text-foreground mb-2 group-hover:text-[#FF9900] transition-colors">
+                  {cert.name}
+                </h3>
+                
+                {/* Tooltip on hover */}
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ 
+                    opacity: hoveredCert === cert.id ? 1 : 0,
+                    height: hoveredCert === cert.id ? "auto" : 0
+                  }}
+                  className="text-sm text-muted-foreground mt-3 overflow-hidden"
+                >
+                  {cert.description}
+                </motion.p>
+
+                {/* Glow effect */}
                 <motion.div
                   className="absolute inset-0 rounded-sm pointer-events-none"
-                  animate={{ opacity: hoveredCert === cert.id ? 0.1 : 0 }}
+                  animate={{ opacity: hoveredCert === cert.id ? 0.15 : 0 }}
                   style={{
                     background: `radial-gradient(circle at center, #FF9900 0%, transparent 70%)`,
                   }}
@@ -160,36 +250,62 @@ export const CredentialsWall = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          <div className="flex items-center gap-3 mb-8">
-            <span className="px-3 py-1 text-xs font-mono bg-accent/10 text-accent border border-accent/30 rounded-sm">
-              AI & Data
-            </span>
-            <div className="flex-1 h-px bg-border/20" />
+          <div className="flex items-center gap-4 mb-10">
+            <span className="font-heading text-lg text-foreground">Additional Credentials</span>
+            <div className="flex-1 h-px bg-border/30" />
           </div>
 
           {/* Horizontal scroll strip */}
           <motion.div 
-            className="flex gap-4 overflow-hidden"
+            className="flex gap-6 overflow-visible"
             style={{ x }}
           >
             {[...otherCerts, ...otherCerts].map((cert, i) => (
               <motion.div
                 key={`${cert.id}-${i}`}
-                onMouseEnter={() => setHoveredCert(cert.id)}
+                onMouseEnter={() => setHoveredCert(`${cert.id}-${i}`)}
                 onMouseLeave={() => setHoveredCert(null)}
                 className={`
-                  flex-shrink-0 px-6 py-4 border border-border/20 rounded-sm
-                  bg-card/50 backdrop-blur-sm
-                  transition-all duration-300 cursor-default
-                  ${hoveredCert === cert.id ? 'border-accent/50' : ''}
+                  flex-shrink-0 p-6 border rounded-sm
+                  bg-card/50 backdrop-blur-sm cursor-default group
+                  transition-all duration-500 min-w-[280px]
+                  ${hoveredCert === `${cert.id}-${i}` 
+                    ? 'border-accent/50 bg-card/80 shadow-lg' 
+                    : 'border-border/20'}
                 `}
+                style={{
+                  borderColor: hoveredCert === `${cert.id}-${i}` ? cert.color : undefined,
+                }}
               >
-                <span className="block font-heading text-sm text-foreground whitespace-nowrap">
-                  {cert.name}
-                </span>
-                <span className="text-xs font-mono text-muted-foreground">
-                  {cert.issuer} • {cert.year}
-                </span>
+                <div className="flex items-center gap-4 mb-4">
+                  <div 
+                    className="w-10 h-10 rounded-sm flex items-center justify-center text-sm font-bold"
+                    style={{ 
+                      backgroundColor: `${cert.color}15`,
+                      color: cert.color,
+                      borderColor: `${cert.color}30`,
+                      borderWidth: 1
+                    }}
+                  >
+                    {cert.shortName}
+                  </div>
+                  <div>
+                    <span className="block font-heading text-sm text-foreground">
+                      {cert.name}
+                    </span>
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {cert.issuer}
+                    </span>
+                  </div>
+                </div>
+                
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: hoveredCert === `${cert.id}-${i}` ? 1 : 0.5 }}
+                  className="text-xs text-muted-foreground"
+                >
+                  {cert.description}
+                </motion.p>
               </motion.div>
             ))}
           </motion.div>
@@ -201,19 +317,21 @@ export const CredentialsWall = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="mt-20 pt-8 border-t border-border/20 flex flex-wrap justify-center gap-12 md:gap-20"
+          className="mt-24 pt-8 border-t border-border/20 flex flex-wrap justify-center gap-16 md:gap-24"
         >
           {[
-            { count: 3, label: "AWS" },
-            { count: 2, label: "AI/ML" },
-            { count: 1, label: "Data Science" },
-            { count: 1, label: "Azure" },
+            { count: 3, label: "Cloud Platforms", color: "#FF9900" },
+            { count: 3, label: "AI/ML Certifications", color: "hsl(var(--accent))" },
+            { count: 2, label: "Data Science", color: "#0F62FE" },
           ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <span className="block font-display text-2xl md:text-3xl text-foreground font-bold">
+            <div key={stat.label} className="text-center group">
+              <span 
+                className="block font-display text-4xl md:text-5xl font-bold transition-colors"
+                style={{ color: stat.color }}
+              >
                 {stat.count}
               </span>
-              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider mt-2 block">
                 {stat.label}
               </span>
             </div>

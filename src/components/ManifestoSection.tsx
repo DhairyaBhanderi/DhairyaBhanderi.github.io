@@ -5,20 +5,21 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Philosophical, specific statements
 const statements = [
   {
-    text: "I architect systems where AI meets reliability.",
-    highlight: ["AI", "reliability"],
+    text: "Code is ephemeral. Systems are legacy. I build for the latter.",
+    highlight: ["ephemeral", "legacy", "latter"],
     bgClass: "bg-background",
   },
   {
-    text: "From prototype to production, I build what lasts.",
-    highlight: ["prototype", "production", "lasts"],
+    text: "AI should amplify human judgment, never replace the soul behind it.",
+    highlight: ["amplify", "judgment", "soul"],
     bgClass: "bg-secondary/30",
   },
   {
-    text: "Automation that empowers, not replaces.",
-    highlight: ["empowers", "replaces"],
+    text: "The best architecture is invisible — felt, never seen.",
+    highlight: ["invisible", "felt", "seen"],
     bgClass: "bg-background",
   },
 ];
@@ -45,8 +46,8 @@ const WordReveal = ({
         const isHighlight = highlights.some(h => 
           word.toLowerCase().includes(h.toLowerCase())
         );
-        const cleanWord = word.replace(/[.,!?]/g, '');
-        const punctuation = word.match(/[.,!?]/g)?.[0] || '';
+        const cleanWord = word.replace(/[.,!?—]/g, '');
+        const punctuation = word.match(/[.,!?—]/g)?.[0] || '';
 
         return (
           <span key={wordIndex} className="inline-block mr-[0.3em] overflow-hidden">

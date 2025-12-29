@@ -7,26 +7,43 @@ interface RevealPreloaderProps {
 
 export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
   const [phase, setPhase] = useState<"loading" | "reveal" | "done">("loading");
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Phase 1: Hold for a moment
+    // Animate progress counter
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + Math.random() * 15 + 5;
+      });
+    }, 100);
+
+    // Phase 1: Hold for a moment with initials
     const loadTimer = setTimeout(() => {
+      setProgress(100);
       setPhase("reveal");
-    }, 800);
+    }, 1200);
 
     // Phase 2: Complete
     const revealTimer = setTimeout(() => {
       setPhase("done");
       onComplete();
-    }, 1600);
+    }, 2200);
 
     return () => {
       clearTimeout(loadTimer);
       clearTimeout(revealTimer);
+      clearInterval(progressInterval);
     };
   }, [onComplete]);
 
   const slices = 5;
+  
+  // Philosophical quote that rotates
+  const philosophicalQuote = "Building what lasts";
   
   return (
     <AnimatePresence mode="wait">
@@ -71,28 +88,83 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
             );
           })}
 
-          {/* Center content - minimal */}
+          {/* Center content - DB initials with philosophical touch */}
           <motion.div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: phase === "loading" ? 1 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Subtle loading indicator */}
-            <div className="relative">
+            {/* DB Initials */}
+            <motion.div
+              className="relative mb-8"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <span className="font-display text-7xl md:text-9xl font-bold tracking-tighter">
+                <motion.span 
+                  className="inline-block text-foreground"
+                  animate={{ 
+                    textShadow: [
+                      "0 0 20px hsl(var(--accent) / 0)",
+                      "0 0 40px hsl(var(--accent) / 0.5)",
+                      "0 0 20px hsl(var(--accent) / 0)"
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  D
+                </motion.span>
+                <motion.span 
+                  className="inline-block text-accent"
+                  animate={{ 
+                    textShadow: [
+                      "0 0 20px hsl(var(--accent) / 0)",
+                      "0 0 40px hsl(var(--accent) / 0.5)",
+                      "0 0 20px hsl(var(--accent) / 0)"
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                >
+                  B
+                </motion.span>
+              </span>
+            </motion.div>
+
+            {/* Philosophical quote */}
+            <motion.p
+              className="font-mono text-xs text-muted-foreground tracking-[0.3em] uppercase mb-8"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              {philosophicalQuote}
+            </motion.p>
+
+            {/* Progress indicator */}
+            <div className="relative w-48">
               <motion.div
-                className="w-12 h-px bg-accent"
+                className="h-px bg-border"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                transition={{ duration: 0.4 }}
               />
               <motion.div
-                className="absolute top-0 left-0 w-full h-px bg-foreground"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: [0, 1] }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                style={{ transformOrigin: "left" }}
+                className="absolute top-0 left-0 h-px bg-accent"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+                transition={{ duration: 0.1 }}
               />
+              
+              {/* Progress percentage */}
+              <motion.span
+                className="absolute -bottom-6 right-0 font-mono text-xs text-accent"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                {Math.min(Math.round(progress), 100)}%
+              </motion.span>
             </div>
           </motion.div>
         </motion.div>

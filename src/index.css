@@ -319,6 +319,34 @@
   .bento-card:hover {
     @apply border-accent/30 bg-card/80;
     box-shadow: 0 0 60px hsl(var(--accent) / 0.1);
+    transform: translateY(-4px);
+  }
+
+  /* Button hover effects */
+  .magnetic-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  }
+
+  .magnetic-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .magnetic-button:active {
+    transform: translateY(0);
+  }
+
+  /* Card lift effect */
+  .card-lift {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  }
+
+  .card-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px hsl(0 0% 0% / 0.5);
   }
 
   /* Horizontal scroll container */

@@ -12,6 +12,7 @@ interface TimelineEntry {
   description: string;
   highlights: string[];
   metrics?: { value: string; label: string }[];
+  color?: string;
 }
 
 const timelineEntries: TimelineEntry[] = [
@@ -28,16 +29,7 @@ const timelineEntries: TimelineEntry[] = [
       { value: "70%", label: "Workflow Reduction" },
       { value: "40%", label: "Coverage Increase" },
     ],
-  },
-  {
-    id: "masters",
-    type: "education",
-    title: "Master of Science in Computer Science",
-    organization: "University of Dayton",
-    period: "2022 — 2024",
-    location: "Dayton, Ohio",
-    description: "Focus on AI/ML and distributed systems. GPA: 3.7/4.0",
-    highlights: ["Machine Learning", "Distributed Systems", "Data Mining"],
+    color: "hsl(var(--copper))",
   },
   {
     id: "pronoesis",
@@ -52,16 +44,17 @@ const timelineEntries: TimelineEntry[] = [
       { value: "92%", label: "Threat Detection" },
       { value: "95%", label: "Phishing Precision" },
     ],
+    color: "hsl(var(--deep-blue))",
   },
   {
-    id: "bachelors",
+    id: "masters",
     type: "education",
-    title: "Bachelor of Technology in Information Technology",
-    organization: "Navrachana University",
-    period: "2018 — 2022",
-    location: "India",
-    description: "Foundation in software engineering and data structures. First Class with Distinction.",
-    highlights: ["Software Engineering", "Data Structures", "Database Systems"],
+    title: "Master of Science in Computer Science",
+    organization: "University of Dayton",
+    period: "2022 — 2024",
+    location: "Dayton, Ohio",
+    description: "Focus on AI/ML and distributed systems. GPA: 3.7/4.0",
+    highlights: ["Machine Learning", "Distributed Systems", "Data Mining"],
   },
   {
     id: "sharvaya",
@@ -76,6 +69,7 @@ const timelineEntries: TimelineEntry[] = [
       { value: "97%", label: "Ticket Precision" },
       { value: "90%", label: "Rollback Reduction" },
     ],
+    color: "hsl(var(--teal))",
   },
   {
     id: "imageweb",
@@ -90,6 +84,17 @@ const timelineEntries: TimelineEntry[] = [
       { value: "18%", label: "Session Increase" },
       { value: "<300ms", label: "Inference Latency" },
     ],
+    color: "hsl(var(--purple))",
+  },
+  {
+    id: "bachelors",
+    type: "education",
+    title: "Bachelor of Technology in Information Technology",
+    organization: "Navrachana University",
+    period: "2018 — 2022",
+    location: "India",
+    description: "Foundation in software engineering and data structures. First Class with Distinction.",
+    highlights: ["Software Engineering", "Data Structures", "Database Systems"],
   },
 ];
 
@@ -120,31 +125,62 @@ const TimelineCard = ({
       style={{ y, opacity }}
       className="relative"
     >
+      {/* Timeline connector */}
+      {index < timelineEntries.length - 1 && (
+        <div className="absolute left-4 top-16 bottom-0 w-px bg-gradient-to-b from-accent/30 to-transparent hidden md:block" />
+      )}
+
       <motion.article
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative group"
+        className={`relative group ${isEducation ? 'md:ml-12' : ''}`}
       >
         {/* Type indicator */}
         <div className="flex items-center gap-3 mb-4">
           <div className={`
             w-8 h-8 rounded-sm flex items-center justify-center
-            ${isEducation ? 'bg-accent/10' : 'bg-copper/10'}
-          `}>
-            <Icon className={`w-4 h-4 ${isEducation ? 'text-accent' : 'text-copper'}`} />
+            ${isEducation ? 'bg-muted/30' : 'bg-accent/10'}
+          `}
+          style={{ 
+            backgroundColor: entry.color ? `${entry.color}15` : undefined,
+            borderColor: entry.color ? `${entry.color}30` : undefined,
+            borderWidth: entry.color ? 1 : 0
+          }}
+          >
+            <Icon className="w-4 h-4" style={{ color: entry.color || 'hsl(var(--accent))' }} />
           </div>
-          <span className={`text-xs font-mono uppercase tracking-wider ${isEducation ? 'text-accent' : 'text-copper'}`}>
+          <span 
+            className="text-xs font-mono uppercase tracking-wider"
+            style={{ color: entry.color || 'hsl(var(--accent))' }}
+          >
             {isEducation ? 'Education' : 'Experience'}
           </span>
         </div>
 
         {/* Main card */}
         <div className={`
-          relative overflow-hidden rounded-sm border border-border/30
-          bg-card/50 backdrop-blur-sm p-6 md:p-10
+          relative overflow-hidden rounded-sm border
+          backdrop-blur-sm p-6 md:p-10
           transition-all duration-500
+          ${isEducation 
+            ? 'border-border/20 bg-card/30' 
+            : 'border-border/30 bg-card/50'
+          }
           ${isHovered ? 'border-accent/40 bg-card/80' : ''}
-        `}>
+        `}
+        style={{
+          borderColor: isHovered && entry.color ? entry.color : undefined,
+        }}
+        >
+          {/* Color tint on hover */}
+          {entry.color && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              animate={{ opacity: isHovered ? 0.05 : 0 }}
+              style={{ backgroundColor: entry.color }}
+            />
+          )}
+
           {/* Top row: Period + Location */}
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <span className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground">
@@ -160,14 +196,17 @@ const TimelineCard = ({
           {/* Organization + Title */}
           <div className="mb-6">
             <motion.p
-              className="text-sm font-mono text-accent tracking-wide uppercase mb-2"
+              className="text-sm font-mono tracking-wide uppercase mb-2"
+              style={{ color: entry.color || 'hsl(var(--accent))' }}
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
             >
               {entry.organization}
             </motion.p>
-            <h3 className="font-heading text-xl md:text-3xl lg:text-4xl text-foreground tracking-tight leading-tight">
+            <h3 className={`font-heading tracking-tight leading-tight ${
+              isEducation ? 'text-lg md:text-2xl' : 'text-xl md:text-3xl lg:text-4xl'
+            } text-foreground`}>
               {entry.title}
             </h3>
           </div>
@@ -188,7 +227,10 @@ const TimelineCard = ({
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 + i * 0.1 }}
                 >
-                  <span className="block font-display text-2xl md:text-3xl text-foreground font-bold">
+                  <span 
+                    className="block font-display text-2xl md:text-3xl font-bold"
+                    style={{ color: entry.color || 'hsl(var(--foreground))' }}
+                  >
                     {metric.value}
                   </span>
                   <span className="block text-xs font-mono text-muted-foreground uppercase tracking-wider mt-1">
@@ -213,11 +255,6 @@ const TimelineCard = ({
                 {tag}
               </motion.span>
             ))}
-          </div>
-
-          {/* Index number */}
-          <div className="absolute bottom-4 right-4 font-mono text-5xl md:text-7xl font-bold text-foreground/[0.03] select-none">
-            0{index + 1}
           </div>
         </div>
       </motion.article>
