@@ -1,12 +1,10 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
-import { Github, Linkedin, Mail, Copy, Check, ArrowUpRight, Sparkles } from "lucide-react";
+import { useState, useRef } from "react";
+import { Github, Linkedin, ArrowUpRight, Download } from "lucide-react";
 
 export const GrandFinale = () => {
   const [copied, setCopied] = useState(false);
-  const [hoveredLetter, setHoveredLetter] = useState<number | null>(null);
   const containerRef = useRef<HTMLElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
 
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
@@ -20,14 +18,8 @@ export const GrandFinale = () => {
 
   const email = "dhairya.yml@gmail.com";
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(email);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+  const handleEmailClick = () => {
+    window.location.href = `mailto:${email}`;
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -37,7 +29,6 @@ export const GrandFinale = () => {
     const newY = (e.clientY - rect.top) / rect.height;
     mouseX.set(newX);
     mouseY.set(newY);
-    setMousePos({ x: newX, y: newY });
   };
 
   const socialLinks = [
@@ -45,13 +36,11 @@ export const GrandFinale = () => {
       name: "GitHub",
       url: "https://github.com/dhairya",
       icon: Github,
-      color: "hover:bg-foreground/10 hover:border-foreground/30",
     },
     {
       name: "LinkedIn",
       url: "https://linkedin.com/in/dhairya-bhanderi",
       icon: Linkedin,
-      color: "hover:bg-deep-blue/20 hover:border-deep-blue/50",
     },
   ];
 
@@ -89,120 +78,70 @@ export const GrandFinale = () => {
         />
       </div>
 
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-accent/30"
-            style={{
-              left: `${20 + i * 15}%`,
-              top: `${30 + i * 10}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 4 + i,
-              repeat: Infinity,
-              delay: i * 0.5,
-            }}
-          />
-        ))}
-      </div>
-
       <div className="container mx-auto px-6 md:px-12 relative z-10">
-        {/* Main statement - Giant typography */}
+        {/* Main statement - Stronger CTA */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 1 }}
-          className="text-center mb-20"
+          className="text-center mb-16"
         >
           <h2 className="font-display text-fluid-section text-foreground leading-[0.9] tracking-tight mb-6">
-            Let's build
+            Ready to build
             <br />
-            something
+            the next
             <br />
-            <span className="text-gradient-copper text-glow">extraordinary</span>
+            <span className="text-gradient-copper text-glow">breakthrough?</span>
           </h2>
         </motion.div>
 
-        {/* Interactive email - Hero treatment */}
+        {/* Email - Direct mailto link */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <button
-            onClick={handleCopy}
-            className="group relative inline-block magnetic-button"
+          <a
+            href={`mailto:${email}`}
+            onClick={handleEmailClick}
+            className="group relative inline-flex items-center gap-4 magnetic-button"
           >
-            {/* Glow background */}
-            <motion.div
-              className="absolute inset-0 -m-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              style={{
-                background: "radial-gradient(circle, hsl(var(--accent) / 0.15) 0%, transparent 70%)",
-              }}
-            />
+            <span className="font-mono text-xl md:text-3xl lg:text-4xl tracking-wider text-foreground/90 hover:text-accent transition-colors">
+              {email}
+            </span>
+            <ArrowUpRight className="w-6 h-6 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+          
+          <motion.span
+            className="block text-xs font-mono text-muted-foreground/50 mt-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            Click to send an email
+          </motion.span>
+        </motion.div>
 
-            {/* Email with letter animation */}
-            <div className="relative">
-              <span className="font-mono text-xl md:text-3xl lg:text-4xl tracking-wider">
-                {email.split("").map((char, i) => (
-                  <motion.span
-                    key={i}
-                    className="inline-block text-foreground/90 hover:text-accent transition-colors cursor-pointer"
-                    onMouseEnter={() => setHoveredLetter(i)}
-                    onMouseLeave={() => setHoveredLetter(null)}
-                    animate={{
-                      y: hoveredLetter === i ? -8 : 0,
-                      scale: hoveredLetter === i ? 1.2 : 1,
-                      color: hoveredLetter === i ? "hsl(var(--accent))" : undefined,
-                    }}
-                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                  >
-                    {char}
-                  </motion.span>
-                ))}
-              </span>
-
-              {/* Copy indicator */}
-              <motion.div
-                className="absolute -right-16 top-1/2 -translate-y-1/2 flex items-center gap-2"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                {copied ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center gap-2 text-emerald"
-                  >
-                    <Check className="w-5 h-5" />
-                    <span className="text-xs font-mono">Copied!</span>
-                  </motion.div>
-                ) : (
-                  <Copy className="w-5 h-5 text-muted-foreground/50 group-hover:text-accent transition-colors" />
-                )}
-              </motion.div>
-            </div>
-
-            {/* Click to copy hint */}
-            <motion.span
-              className="block text-xs font-mono text-muted-foreground/50 mt-4 group-hover:text-muted-foreground transition-colors"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
-              Click to copy
-            </motion.span>
-          </button>
+        {/* Action buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="flex justify-center gap-4 mb-16"
+        >
+          <a
+            href="/resume.pdf"
+            download
+            className="magnetic-button group flex items-center gap-3 px-6 py-3 border border-accent/50 rounded-sm 
+                       bg-accent/10 hover:bg-accent/20 transition-all duration-300"
+          >
+            <Download className="w-4 h-4 text-accent" />
+            <span className="font-mono text-sm text-accent uppercase tracking-wider">Download Resume</span>
+          </a>
         </motion.div>
 
         {/* Social links - Large circular buttons */}
@@ -213,32 +152,20 @@ export const GrandFinale = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="flex justify-center gap-6 mb-32"
         >
-          {socialLinks.map((link, i) => (
+          {socialLinks.map((link) => (
             <motion.a
               key={link.name}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`
-                group relative w-16 h-16 md:w-20 md:h-20
-                rounded-full border border-border/30 
-                flex items-center justify-center
-                transition-all duration-300
-                ${link.color}
-              `}
+              className="magnetic-button group relative w-16 h-16 md:w-20 md:h-20
+                         rounded-full border border-border/30 
+                         flex items-center justify-center
+                         transition-all duration-300
+                         hover:bg-foreground/10 hover:border-foreground/30"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              {/* Glow ring on hover */}
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                initial={{ opacity: 0, scale: 1 }}
-                whileHover={{ opacity: 1, scale: 1.2 }}
-                style={{
-                  background: "radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%)",
-                }}
-              />
-
               <link.icon className="w-6 h-6 md:w-7 md:h-7 text-foreground/70 group-hover:text-foreground transition-colors relative z-10" />
 
               {/* Label on hover */}
@@ -280,11 +207,6 @@ export const GrandFinale = () => {
                   Open to opportunities
                 </span>
               </div>
-
-              {/* Built with */}
-              <p className="text-muted-foreground/30 text-xs font-body flex items-center gap-1">
-                Built with <Sparkles className="w-3 h-3 text-accent/50" /> passion
-              </p>
             </div>
           </div>
         </motion.footer>
