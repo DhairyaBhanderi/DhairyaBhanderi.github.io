@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import ScrollProgress from "@/components/ScrollProgress";
 import RevealPreloader from "@/components/RevealPreloader";
@@ -12,18 +10,12 @@ import ExperienceShowcase from "@/components/ExperienceShowcase";
 import GrandFinale from "@/components/GrandFinale";
 
 const Index = () => {
-  const [preloaderComplete, setPreloaderComplete] = useState(false);
-
   return (
     <>
-      <RevealPreloader onComplete={() => setPreloaderComplete(true)} />
+      {/* Content is always rendered behind the preloader overlay for an instant reveal */}
+      <RevealPreloader onComplete={() => {}} />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: preloaderComplete ? 1 : 0 }}
-        transition={{ duration: 0.4, delay: 0 }}
-        className="relative"
-      >
+      <div className="relative">
         <ScrollProgress />
         <Navigation />
 
@@ -39,7 +31,7 @@ const Index = () => {
           <ExperienceShowcase />
           <GrandFinale />
         </main>
-      </motion.div>
+      </div>
     </>
   );
 };
