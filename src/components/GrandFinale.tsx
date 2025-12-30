@@ -29,12 +29,12 @@ export const GrandFinale = () => {
   const socialLinks = [
     {
       name: "GitHub",
-      url: "https://github.com/dhairya",
+      url: "https://github.com/DhairyaBhanderi",
       icon: Github,
     },
     {
       name: "LinkedIn",
-      url: "https://linkedin.com/in/dhairya-bhanderi",
+      url: "https://www.linkedin.com/in/dhairya9520",
       icon: Linkedin,
     },
   ];
