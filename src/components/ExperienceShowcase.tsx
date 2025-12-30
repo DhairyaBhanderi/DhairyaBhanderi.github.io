@@ -156,6 +156,7 @@ const TimelineCard = ({
 
   const isEducation = entry.type === "education";
   const Icon = isEducation ? GraduationCap : Briefcase;
+  const canExpand = !isEducation && !!entry.details?.length;
 
   return (
     <motion.div

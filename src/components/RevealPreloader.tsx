@@ -6,13 +6,20 @@ interface RevealPreloaderProps {
 }
 
 export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
+  const slices = 5;
+  const LOAD_MS = 800;
+  const SLICE_STAGGER_MS = 80;
+  const SLICE_DURATION_MS = 700;
+  const EXIT_FADE_MS = 300;
+  const REVEAL_TOTAL_MS = LOAD_MS + SLICE_DURATION_MS + (slices - 1) * SLICE_STAGGER_MS;
+
   const [phase, setPhase] = useState<"loading" | "reveal" | "done">("loading");
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // Animate progress counter
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
@@ -25,13 +32,13 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
     const loadTimer = setTimeout(() => {
       setProgress(100);
       setPhase("reveal");
-    }, 800);
+    }, LOAD_MS);
 
-    // Phase 2: Complete - immediately when slices finish
+    // Phase 2: Complete when slice animation finishes (+ exit fade)
     const revealTimer = setTimeout(() => {
       setPhase("done");
       onComplete();
-    }, 1400);
+    }, REVEAL_TOTAL_MS + EXIT_FADE_MS);
 
     return () => {
       clearTimeout(loadTimer);
@@ -40,11 +47,9 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
     };
   }, [onComplete]);
 
-  const slices = 5;
-  
   // Philosophical quote that rotates
   const philosophicalQuote = "Building what lasts";
-  
+
   return (
     <AnimatePresence mode="wait">
       {phase !== "done" && (
@@ -57,8 +62,8 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
           {/* Horizontal slices that slide away */}
           {Array.from({ length: slices }).map((_, i) => {
             const isEven = i % 2 === 0;
-            const delay = i * 0.08;
-            
+            const delay = i * (SLICE_STAGGER_MS / 1000);
+
             return (
               <motion.div
                 key={i}
@@ -68,18 +73,22 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
                   height: `${100 / slices + 0.5}%`, // Slight overlap to prevent gaps
                 }}
                 initial={{ x: 0 }}
-                animate={phase === "reveal" ? { 
-                  x: isEven ? "-105%" : "105%",
-                } : { x: 0 }}
+                animate={
+                  phase === "reveal"
+                    ? {
+                        x: isEven ? "-105%" : "105%",
+                      }
+                    : { x: 0 }
+                }
                 transition={{
-                  duration: 0.7,
+                  duration: SLICE_DURATION_MS / 1000,
                   delay: delay,
                   ease: [0.76, 0, 0.24, 1],
                 }}
               >
                 {/* Accent line on each slice edge */}
                 <motion.div
-                  className={`absolute ${isEven ? 'right-0' : 'left-0'} top-0 bottom-0 w-px bg-accent/50`}
+                  className={`absolute ${isEven ? "right-0" : "left-0"} top-0 bottom-0 w-px bg-accent/50`}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: phase === "loading" ? 1 : 0 }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}

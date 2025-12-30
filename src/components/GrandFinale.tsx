@@ -73,7 +73,7 @@ export const GrandFinale = () => {
         />
       </div>
 
-      <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col items-center justify-center">
+      <div className="container mx-auto px-6 md:px-12 relative z-10 flex h-full flex-col items-center justify-center">
         {/* Main statement - Stronger CTA */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
