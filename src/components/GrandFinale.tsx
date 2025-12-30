@@ -3,7 +3,6 @@ import { useState, useRef } from "react";
 import { Github, Linkedin, ArrowUpRight, Download } from "lucide-react";
 
 export const GrandFinale = () => {
-  const [copied, setCopied] = useState(false);
   const containerRef = useRef<HTMLElement>(null);
 
   const mouseX = useMotionValue(0.5);
@@ -17,10 +16,6 @@ export const GrandFinale = () => {
   const gradientY = useTransform(y, [0, 1], [20, 80]);
 
   const email = "dhairya.yml@gmail.com";
-
-  const handleEmailClick = () => {
-    window.location.href = `mailto:${email}`;
-  };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
@@ -78,7 +73,7 @@ export const GrandFinale = () => {
         />
       </div>
 
-      <div className="container mx-auto px-6 md:px-12 relative z-10">
+      <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col items-center justify-center">
         {/* Main statement - Stronger CTA */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
@@ -106,7 +101,6 @@ export const GrandFinale = () => {
         >
           <a
             href={`mailto:${email}`}
-            onClick={handleEmailClick}
             className="group relative inline-flex items-center gap-4 magnetic-button"
           >
             <span className="font-mono text-xl md:text-3xl lg:text-4xl tracking-wider text-foreground/90 hover:text-accent transition-colors">
@@ -150,7 +144,7 @@ export const GrandFinale = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex justify-center gap-6 mb-32"
+          className="flex justify-center gap-6 mb-24"
         >
           {socialLinks.map((link) => (
             <motion.a
@@ -178,35 +172,33 @@ export const GrandFinale = () => {
           ))}
         </motion.div>
 
-        {/* Footer - Integrated elegantly */}
+        {/* Footer - Centered in section */}
         <motion.footer
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="absolute bottom-8 left-0 right-0"
+          className="w-full"
         >
-          <div className="container mx-auto px-6 md:px-12">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-6 border-t border-border/10">
-              {/* Copyright */}
-              <p className="text-muted-foreground/40 text-xs font-body">
-                © {new Date().getFullYear()} Dhairya Bhanderi
-              </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-6 border-t border-border/10">
+            {/* Copyright */}
+            <p className="text-muted-foreground/40 text-xs font-body">
+              © {new Date().getFullYear()} Dhairya Bhanderi
+            </p>
 
-              {/* Status indicator */}
-              <div className="flex items-center gap-3">
-                <motion.span
-                  className="relative w-2 h-2"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <span className="absolute inset-0 rounded-full bg-emerald animate-ping opacity-50" />
-                  <span className="relative block w-2 h-2 rounded-full bg-emerald" />
-                </motion.span>
-                <span className="text-muted-foreground/40 text-xs font-body">
-                  Open to opportunities
-                </span>
-              </div>
+            {/* Status indicator */}
+            <div className="flex items-center gap-3">
+              <motion.span
+                className="relative w-2 h-2"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <span className="absolute inset-0 rounded-full bg-emerald animate-ping opacity-50" />
+                <span className="relative block w-2 h-2 rounded-full bg-emerald" />
+              </motion.span>
+              <span className="text-muted-foreground/40 text-xs font-body">
+                Open to opportunities
+              </span>
             </div>
           </div>
         </motion.footer>

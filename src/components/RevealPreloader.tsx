@@ -25,13 +25,13 @@ export const RevealPreloader = ({ onComplete }: RevealPreloaderProps) => {
     const loadTimer = setTimeout(() => {
       setProgress(100);
       setPhase("reveal");
-    }, 1200);
+    }, 800);
 
-    // Phase 2: Complete
+    // Phase 2: Complete - immediately when slices finish
     const revealTimer = setTimeout(() => {
       setPhase("done");
       onComplete();
-    }, 2200);
+    }, 1400);
 
     return () => {
       clearTimeout(loadTimer);
