@@ -143,11 +143,6 @@ const TiltCard = ({ project, index }: TiltCardProps) => {
           transition={{ duration: 0.3 }}
         />
 
-        {/* Project number watermark */}
-        <div className="absolute top-8 right-8 font-display text-8xl md:text-9xl text-foreground/5 select-none">
-          {String(index + 1).padStart(2, "0")}
-        </div>
-
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col justify-between p-8 md:p-12">
           {/* Top section */}
