@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useState, useRef } from "react";
 import { Github, Linkedin, ArrowUpRight, Download } from "lucide-react";
+import { RESUME_PDF_DATA_URL } from "@/lib/resumeData";
 
 export const GrandFinale = () => {
   const containerRef = useRef<HTMLElement>(null);
@@ -128,8 +129,8 @@ export const GrandFinale = () => {
           className="flex justify-center gap-4 mb-16"
         >
           <a
-            href="/resume.pdf"
-            download
+            href={RESUME_PDF_DATA_URL}
+            download="Dhairya_Bhanderi_Resume.pdf"
             className="magnetic-button group flex items-center gap-3 px-6 py-3 border border-accent/50 rounded-sm 
                        bg-accent/10 hover:bg-accent/20 transition-all duration-300"
           >
