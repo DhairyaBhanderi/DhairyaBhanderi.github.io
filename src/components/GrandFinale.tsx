@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useState, useRef } from "react";
 import { Github, Linkedin, ArrowUpRight, Download } from "lucide-react";
-import { RESUME_PDF_DATA_URL } from "@/lib/resumeData";
+import { RESUME_PDF_DATA_URL } from "@/Dhairya Bhanderi_Resume.pdf";
 
 export const GrandFinale = () => {
   const containerRef = useRef<HTMLElement>(null);
