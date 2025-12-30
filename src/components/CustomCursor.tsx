@@ -20,9 +20,10 @@ export const CustomCursor = () => {
   const prevX = useRef(-100);
   const prevY = useRef(-100);
 
-  // Dot positions for constellation effect
-  const dotPositions = useRef<{ x: number; y: number; opacity: number }[]>([]);
-  const [dots, setDots] = useState<{ x: number; y: number; opacity: number; id: number }[]>([]);
+  // Cosmic ribbons for a more dramatic trail
+  const [dots, setDots] = useState<
+    { x: number; y: number; opacity: number; id: number; rotation: number; length: number }
+  >([]);
   const dotIdRef = useRef(0);
 
   const springConfig = { damping: 25, stiffness: 400, mass: 0.5 };
@@ -56,13 +57,21 @@ export const CustomCursor = () => {
   const skewY = useTransform(velocityYSpring, [-30, 0, 30], [-5, 0, 5]);
 
   const addDot = useCallback((x: number, y: number) => {
-    const newDot = { x, y, opacity: 0.6, id: dotIdRef.current++ };
-    setDots(prev => [...prev.slice(-8), newDot]);
-    
-    // Fade out dot after delay
+    const newDot = {
+      x,
+      y,
+      opacity: 0.9,
+      id: dotIdRef.current++,
+      rotation: Math.random() * 360,
+      length: 18 + Math.random() * 22,
+    };
+
+    setDots(prev => [...prev.slice(-10), newDot]);
+
+    // Fade out ribbon after delay
     setTimeout(() => {
       setDots(prev => prev.filter(d => d.id !== newDot.id));
-    }, 600);
+    }, 700);
   }, []);
 
   useEffect(() => {
@@ -229,16 +238,16 @@ export const CustomCursor = () => {
 
   return (
     <>
-      {/* Trailing dots - constellation effect */}
+      {/* Hypercolor ribbons */}
       <AnimatePresence>
         {dots.map((dot) => (
           <motion.div
             key={dot.id}
             className="fixed pointer-events-none z-[9996]"
-            initial={{ opacity: 0.5, scale: 1 }}
-            animate={{ opacity: 0, scale: 0.3 }}
+            initial={{ opacity: dot.opacity, scale: 1 }}
+            animate={{ opacity: 0, scale: 0.65, filter: "blur(1px)" }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.75, ease: "easeOut" }}
             style={{
               left: dot.x,
               top: dot.y,
@@ -246,12 +255,22 @@ export const CustomCursor = () => {
               y: "-50%",
             }}
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+            <div
+              className="origin-center rounded-full"
+              style={{
+                width: dot.length,
+                height: 4,
+                background: `linear-gradient(90deg, hsla(var(--accent) / 0.85), hsla(var(--foreground) / 0.8))`,
+                transform: `rotate(${dot.rotation}deg)`,
+                boxShadow: `0 0 12px hsla(var(--accent) / 0.8)`,
+                opacity: dot.opacity,
+              }}
+            />
           </motion.div>
         ))}
       </AnimatePresence>
 
-      {/* Outer ring - follows with delay */}
+      {/* Aurora ring with delayed motion */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9997]"
         style={{
@@ -262,21 +281,28 @@ export const CustomCursor = () => {
         <motion.div
           className="relative -translate-x-1/2 -translate-y-1/2 rounded-full"
           animate={{
-            width: getCursorSize() + 20,
-            height: getCursorSize() + 20,
+            width: getCursorSize() + 26,
+            height: getCursorSize() + 26,
             borderWidth: isHovering ? 1.5 : 1,
-            borderColor: isHovering 
-              ? "hsl(var(--accent))" 
-              : "hsl(var(--foreground) / 0.3)",
-          }}
-          style={{
-            borderStyle: "solid",
+            opacity: isHovering ? 0.9 : 0.6,
+            rotate: isHovering ? 8 : 0,
+            borderColor: "transparent",
+            boxShadow: [
+              `0 0 0 1px hsl(var(--foreground) / 0.12)`,
+              `0 0 18px 4px hsla(var(--accent) / ${isHovering ? 0.45 : 0.2}) inset`,
+            ].join(","),
+            background: `conic-gradient(from ${isHovering ? 120 : 80}deg, hsla(var(--accent) / 0.5), transparent, hsla(var(--foreground) / 0.4), transparent, hsla(var(--accent) / 0.55))`,
           }}
           transition={{ type: "spring", damping: 20, stiffness: 200 }}
+          style={{
+            borderStyle: "solid",
+            filter: "blur(0.5px) saturate(1.2)",
+            mixBlendMode: "screen",
+          }}
         />
       </motion.div>
 
-      {/* Main cursor blob */}
+      {/* Main cursor sculpture */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9999]"
         style={{
@@ -292,96 +318,163 @@ export const CustomCursor = () => {
             skewY,
           }}
         >
-          {/* Glow layer */}
+          {/* Haze */}
           <motion.div
-            className="absolute inset-0 -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl"
+            className="absolute inset-0 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
             animate={{
-              width: getCursorSize() * 1.5,
-              height: getCursorSize() * 1.5,
-              opacity: isHovering ? 0.4 : 0.2,
-              backgroundColor: cursorVariant === "project" 
-                ? "hsl(var(--accent))"
-                : "hsl(var(--foreground))",
+              width: getCursorSize() * 1.8,
+              height: getCursorSize() * 1.8,
+              opacity: isHovering ? 0.45 : 0.25,
+              backgroundColor: cursorVariant === "project"
+                ? "hsla(var(--accent) / 0.7)"
+                : "hsla(var(--foreground) / 0.6)",
             }}
             style={{
               left: "50%",
               top: "50%",
               scaleX: stretch,
             }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            transition={{ type: "spring", damping: 20, stiffness: 190 }}
           />
 
-          {/* Main blob */}
+          {/* Prismatic shell */}
           <motion.div
-            className="relative rounded-full mix-blend-difference"
+            className="absolute inset-0 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            animate={{
+              width: getCursorSize() * 1.25,
+              height: getCursorSize() * 1.25,
+              rotate: isHovering ? 16 : 0,
+              opacity: isHovering ? 1 : 0.75,
+              background: `radial-gradient(circle at 30% 30%, hsla(var(--accent) / 0.7), transparent 55%), radial-gradient(circle at 70% 70%, hsla(var(--foreground) / 0.6), transparent 50%)`,
+            }}
+            style={{
+              left: "50%",
+              top: "50%",
+              filter: "blur(4px) saturate(1.1)",
+              mixBlendMode: "screen",
+            }}
+            transition={{ type: "spring", damping: 22, stiffness: 240 }}
+          />
+
+          {/* Main aurora blob */}
+          <motion.div
+            className="relative rounded-full backdrop-blur-md border border-white/20 shadow-2xl overflow-hidden"
             animate={{
               width: getCursorSize(),
               height: getCursorSize(),
-              backgroundColor: cursorVariant === "project" 
-                ? "hsl(var(--accent))"
-                : "hsl(var(--foreground))",
+              background: cursorVariant === "project"
+                ? "linear-gradient(135deg, hsla(var(--accent) / 0.95), hsla(var(--accent) / 0.5))"
+                : "linear-gradient(135deg, hsla(var(--foreground) / 0.92), hsla(var(--foreground) / 0.55))",
+              boxShadow: `0 14px 40px -16px hsla(var(--accent) / ${isHovering ? 0.65 : 0.35}), 0 0 1px hsla(var(--foreground) / 0.35)`,
             }}
             style={{
               scaleX: stretch,
+              isolation: "isolate",
             }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            transition={{ type: "spring", damping: 18, stiffness: 320 }}
           >
-            {/* Inner dot */}
+            {/* Liquid sheen */}
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                background: `conic-gradient(from ${isHovering ? 180 : 90}deg, hsla(var(--background) / 0), hsla(var(--background) / 0.25), hsla(var(--background) / 0))`,
+                rotate: isHovering ? 45 : 0,
+                opacity: isHovering ? 0.8 : 0.55,
+              }}
+              transition={{ type: "spring", damping: 26, stiffness: 250 }}
+              style={{
+                mixBlendMode: "plus-lighter",
+              }}
+            />
+
+            {/* Inner pulse */}
             <motion.div
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
               animate={{
                 width: getInnerSize(),
                 height: getInnerSize(),
                 backgroundColor: cursorVariant === "project"
-                  ? "hsl(var(--background))"
-                  : "hsl(var(--background))",
-                opacity: isHovering ? 1 : 0,
+                  ? "hsla(var(--background) / 0.95)"
+                  : "hsla(var(--background) / 0.9)",
+                opacity: isHovering ? 1 : 0.85,
+                scale: isHovering ? 1.05 : 1,
               }}
-              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+              transition={{ type: "spring", damping: 22, stiffness: 420 }}
+              style={{
+                boxShadow: "0 0 24px hsla(var(--background) / 0.45)",
+              }}
             />
 
             {/* Cursor text */}
             <AnimatePresence>
               {cursorText && (
                 <motion.span
-                  initial={{ opacity: 0, scale: 0.5 }}
+                  initial={{ opacity: 0, scale: 0.6 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="absolute inset-0 flex items-center justify-center text-background text-[11px] font-mono font-semibold uppercase tracking-wider"
+                  exit={{ opacity: 0, scale: 0.6 }}
+                  className="absolute inset-0 flex items-center justify-center text-background text-[11px] font-mono font-semibold uppercase tracking-[0.12em]"
+                  style={{ textShadow: "0 2px 12px hsla(var(--background) / 0.45)" }}
                 >
                   {cursorText}
                 </motion.span>
               )}
             </AnimatePresence>
-          </motion.div>
 
-          {/* Arrow indicator for project hover */}
-          <AnimatePresence>
-            {cursorVariant === "project" && !cursorText && (
+            {/* Orbiting sparks */}
+            {[0, 1].map((idx) => (
               <motion.div
-                initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-background"
+                key={idx}
+                className="absolute left-1/2 top-1/2 rounded-full"
+                style={{
+                  width: 8,
+                  height: 8,
+                  background: "hsla(var(--background) / 0.9)",
+                  boxShadow: `0 0 10px hsla(var(--accent) / 0.8)`,
+                  translateX: "-50%",
+                  translateY: "-50%",
+                }}
+                animate={{
+                  rotate: 360,
+                  x: Math.cos(idx * Math.PI) * (getInnerSize() + 6),
+                  y: Math.sin(idx * Math.PI) * (getInnerSize() + 6),
+                  scale: isHovering ? 1 : 0.8,
+                  opacity: isHovering ? 1 : 0.7,
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2.8 + idx * 0.6,
+                  ease: "linear",
+                }}
+              />
+            ))}
+
+            {/* Arrow indicator for project hover */}
+            <AnimatePresence>
+              {cursorVariant === "project" && !cursorText && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5, rotate: -22 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.5, rotate: 22 }}
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-background"
                 >
-                  <path
-                    d="M7 17L17 7M17 7H8M17 7V16"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <svg
+                    width="26"
+                    height="26"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M7 17L17 7M17 7H8M17 7V16"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -390,10 +483,10 @@ export const CustomCursor = () => {
         {isClicking && (
           <motion.div
             className="fixed pointer-events-none z-[9998]"
-            initial={{ scale: 0.5, opacity: 0.8 }}
-            animate={{ scale: 2, opacity: 0 }}
+            initial={{ scale: 0.7, opacity: 0.85 }}
+            animate={{ scale: 2.3, opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
             style={{
               x: cursorXSpring,
               y: cursorYSpring,
@@ -402,7 +495,7 @@ export const CustomCursor = () => {
             }}
           >
             <div 
-              className="w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent"
+              className="w-14 h-14 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent/80 shadow-[0_0_24px_rgba(0,0,0,0.15)]"
             />
           </motion.div>
         )}
