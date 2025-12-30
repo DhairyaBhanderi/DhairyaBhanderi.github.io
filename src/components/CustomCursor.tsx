@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { motion, useSpring, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 
 interface MagneticElement {
   element: HTMLElement;
@@ -11,6 +11,7 @@ export const CustomCursor = () => {
   const [isClicking, setIsClicking] = useState(false);
   const [cursorText, setCursorText] = useState("");
   const [isMagnetic, setIsMagnetic] = useState(false);
+  const [cursorVariant, setCursorVariant] = useState<"default" | "link" | "project" | "button">("default");
 
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
@@ -19,29 +20,55 @@ export const CustomCursor = () => {
   const prevX = useRef(-100);
   const prevY = useRef(-100);
 
-  const springConfig = { damping: 20, stiffness: 300 };
-  const slowSpring = { damping: 30, stiffness: 200 };
+  // Dot positions for constellation effect
+  const dotPositions = useRef<{ x: number; y: number; opacity: number }[]>([]);
+  const [dots, setDots] = useState<{ x: number; y: number; opacity: number; id: number }[]>([]);
+  const dotIdRef = useRef(0);
+
+  const springConfig = { damping: 25, stiffness: 400, mass: 0.5 };
+  const slowSpring = { damping: 40, stiffness: 150, mass: 1 };
 
   const cursorXSpring = useSpring(cursorX, springConfig);
   const cursorYSpring = useSpring(cursorY, springConfig);
   const trailXSpring = useSpring(cursorX, slowSpring);
   const trailYSpring = useSpring(cursorY, slowSpring);
 
-  // Velocity-based stretch
-  const velocityXSpring = useSpring(velocityX, { damping: 20, stiffness: 100 });
-  const velocityYSpring = useSpring(velocityY, { damping: 20, stiffness: 100 });
+  // Velocity-based morphing
+  const velocityXSpring = useSpring(velocityX, { damping: 25, stiffness: 120 });
+  const velocityYSpring = useSpring(velocityY, { damping: 25, stiffness: 120 });
 
-  const scaleX = useTransform(velocityXSpring, [-50, 0, 50], [0.5, 1, 1.5]);
-  const scaleY = useTransform(velocityYSpring, [-50, 0, 50], [0.5, 1, 1.5]);
+  // Dynamic stretch based on velocity
+  const stretch = useTransform(
+    [velocityXSpring, velocityYSpring],
+    ([vx, vy]: number[]) => {
+      const velocity = Math.sqrt(vx * vx + vy * vy);
+      return Math.min(1 + velocity * 0.015, 2);
+    }
+  );
+
   const rotation = useTransform(
     [velocityXSpring, velocityYSpring],
     ([vx, vy]: number[]) => Math.atan2(vy, vx) * (180 / Math.PI)
   );
 
+  // Skew for fluid effect
+  const skewX = useTransform(velocityXSpring, [-30, 0, 30], [-10, 0, 10]);
+  const skewY = useTransform(velocityYSpring, [-30, 0, 30], [-5, 0, 5]);
+
+  const addDot = useCallback((x: number, y: number) => {
+    const newDot = { x, y, opacity: 0.6, id: dotIdRef.current++ };
+    setDots(prev => [...prev.slice(-8), newDot]);
+    
+    // Fade out dot after delay
+    setTimeout(() => {
+      setDots(prev => prev.filter(d => d.id !== newDot.id));
+    }, 600);
+  }, []);
+
   useEffect(() => {
     let magneticElements: MagneticElement[] = [];
-    const magneticRadius = 120;
-    let animationFrame: number;
+    const magneticRadius = 100;
+    let lastDotTime = 0;
     let lastTime = performance.now();
 
     const updateMagneticElements = () => {
@@ -67,6 +94,13 @@ export const CustomCursor = () => {
       velocityX.set(vx);
       velocityY.set(vy);
 
+      // Add trailing dots based on velocity
+      const velocity = Math.sqrt(vx * vx + vy * vy);
+      if (velocity > 5 && now - lastDotTime > 50) {
+        addDot(newX, newY);
+        lastDotTime = now;
+      }
+
       prevX.current = newX;
       prevY.current = newY;
 
@@ -84,9 +118,8 @@ export const CustomCursor = () => {
 
         if (distance < magneticRadius) {
           foundMagnetic = true;
-          const pull = 1 - distance / magneticRadius;
-          // Move element toward cursor
-          element.style.transform = `translate(${distanceX * pull * 0.3}px, ${distanceY * pull * 0.3}px)`;
+          const pull = Math.pow(1 - distance / magneticRadius, 2);
+          element.style.transform = `translate(${distanceX * pull * 0.4}px, ${distanceY * pull * 0.4}px)`;
           break;
         } else {
           element.style.transform = "";
@@ -102,14 +135,29 @@ export const CustomCursor = () => {
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
+      // Check for project cards
+      if (target.closest("[data-cursor='project']")) {
+        setCursorVariant("project");
+        setIsHovering(true);
+        setCursorText("View");
+        return;
+      }
+
+      // Check for buttons
+      if (target.closest("button") || target.closest("[data-cursor='button']")) {
+        setCursorVariant("button");
+        setIsHovering(true);
+        setCursorText("");
+        return;
+      }
+
       if (
         target.tagName === "A" ||
-        target.tagName === "BUTTON" ||
         target.closest("a") ||
-        target.closest("button") ||
         target.dataset.cursor === "pointer" ||
         target.closest("[data-cursor='pointer']")
       ) {
+        setCursorVariant("link");
         setIsHovering(true);
         setCursorText(
           target.dataset.cursorText ||
@@ -119,9 +167,16 @@ export const CustomCursor = () => {
       }
     };
 
-    const handleMouseOut = () => {
-      setIsHovering(false);
-      setCursorText("");
+    const handleMouseOut = (e: MouseEvent) => {
+      const relatedTarget = e.relatedTarget as HTMLElement | null;
+      if (!relatedTarget || 
+          (!relatedTarget.closest("a") && 
+           !relatedTarget.closest("button") && 
+           !relatedTarget.closest("[data-cursor]"))) {
+        setIsHovering(false);
+        setCursorText("");
+        setCursorVariant("default");
+      }
     };
 
     const handleScroll = () => {
@@ -148,25 +203,55 @@ export const CustomCursor = () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", updateMagneticElements);
       clearInterval(interval);
-      if (animationFrame) cancelAnimationFrame(animationFrame);
     };
-  }, [cursorX, cursorY, velocityX, velocityY]);
+  }, [cursorX, cursorY, velocityX, velocityY, addDot]);
 
   // Hide on touch devices
   const isTouchDevice =
     typeof window !== "undefined" && "ontouchstart" in window;
   if (isTouchDevice) return null;
 
-  const getBlobSize = () => {
-    if (isHovering) return 80;
-    if (isClicking) return 16;
-    if (isMagnetic) return 40;
-    return 24;
+  const getCursorSize = () => {
+    if (cursorVariant === "project") return 90;
+    if (isHovering) return 70;
+    if (isClicking) return 12;
+    if (isMagnetic) return 36;
+    return 20;
+  };
+
+  const getInnerSize = () => {
+    if (cursorVariant === "project") return 80;
+    if (isHovering) return 60;
+    if (isClicking) return 8;
+    if (isMagnetic) return 28;
+    return 8;
   };
 
   return (
     <>
-      {/* Trailing blob */}
+      {/* Trailing dots - constellation effect */}
+      <AnimatePresence>
+        {dots.map((dot) => (
+          <motion.div
+            key={dot.id}
+            className="fixed pointer-events-none z-[9996]"
+            initial={{ opacity: 0.5, scale: 1 }}
+            animate={{ opacity: 0, scale: 0.3 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            style={{
+              left: dot.x,
+              top: dot.y,
+              x: "-50%",
+              y: "-50%",
+            }}
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+
+      {/* Outer ring - follows with delay */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9997]"
         style={{
@@ -175,18 +260,25 @@ export const CustomCursor = () => {
         }}
       >
         <motion.div
-          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/20"
+          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full"
           animate={{
-            width: getBlobSize() * 2,
-            height: getBlobSize() * 2,
+            width: getCursorSize() + 20,
+            height: getCursorSize() + 20,
+            borderWidth: isHovering ? 1.5 : 1,
+            borderColor: isHovering 
+              ? "hsl(var(--accent))" 
+              : "hsl(var(--foreground) / 0.3)",
           }}
-          transition={{ type: "spring", damping: 15, stiffness: 100 }}
+          style={{
+            borderStyle: "solid",
+          }}
+          transition={{ type: "spring", damping: 20, stiffness: 200 }}
         />
       </motion.div>
 
-      {/* Main morphing blob cursor */}
+      {/* Main cursor blob */}
       <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference"
+        className="fixed top-0 left-0 pointer-events-none z-[9999]"
         style={{
           x: cursorXSpring,
           y: cursorYSpring,
@@ -196,72 +288,132 @@ export const CustomCursor = () => {
           className="relative -translate-x-1/2 -translate-y-1/2"
           style={{
             rotate: rotation,
+            skewX,
+            skewY,
           }}
         >
-          <motion.svg
-            width={getBlobSize() * 2}
-            height={getBlobSize() * 2}
-            viewBox="0 0 100 100"
+          {/* Glow layer */}
+          <motion.div
+            className="absolute inset-0 -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl"
             animate={{
-              width: getBlobSize() * 2,
-              height: getBlobSize() * 2,
+              width: getCursorSize() * 1.5,
+              height: getCursorSize() * 1.5,
+              opacity: isHovering ? 0.4 : 0.2,
+              backgroundColor: cursorVariant === "project" 
+                ? "hsl(var(--accent))"
+                : "hsl(var(--foreground))",
             }}
-            transition={{ type: "spring", damping: 15, stiffness: 200 }}
-          >
-            <motion.ellipse
-              cx="50"
-              cy="50"
-              fill="hsl(var(--foreground))"
-              animate={{
-                rx: isClicking ? 20 : isHovering ? 45 : 40,
-                ry: isClicking ? 20 : isHovering ? 45 : 40,
-              }}
-              style={{
-                scaleX,
-                scaleY,
-                transformOrigin: "center",
-              }}
-              transition={{ type: "spring", damping: 15, stiffness: 200 }}
-            />
-          </motion.svg>
+            style={{
+              left: "50%",
+              top: "50%",
+              scaleX: stretch,
+            }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          />
 
-          {/* Cursor text */}
-          {cursorText && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute inset-0 flex items-center justify-center text-background text-[10px] font-body font-bold uppercase tracking-widest"
-            >
-              {cursorText}
-            </motion.span>
-          )}
+          {/* Main blob */}
+          <motion.div
+            className="relative rounded-full mix-blend-difference"
+            animate={{
+              width: getCursorSize(),
+              height: getCursorSize(),
+              backgroundColor: cursorVariant === "project" 
+                ? "hsl(var(--accent))"
+                : "hsl(var(--foreground))",
+            }}
+            style={{
+              scaleX: stretch,
+            }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          >
+            {/* Inner dot */}
+            <motion.div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              animate={{
+                width: getInnerSize(),
+                height: getInnerSize(),
+                backgroundColor: cursorVariant === "project"
+                  ? "hsl(var(--background))"
+                  : "hsl(var(--background))",
+                opacity: isHovering ? 1 : 0,
+              }}
+              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+            />
+
+            {/* Cursor text */}
+            <AnimatePresence>
+              {cursorText && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="absolute inset-0 flex items-center justify-center text-background text-[11px] font-mono font-semibold uppercase tracking-wider"
+                >
+                  {cursorText}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Arrow indicator for project hover */}
+          <AnimatePresence>
+            {cursorVariant === "project" && !cursorText && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="text-background"
+                >
+                  <path
+                    d="M7 17L17 7M17 7H8M17 7V16"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.div>
 
-      {/* Absorption effect ring */}
-      <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9998]"
-        style={{
-          x: cursorXSpring,
-          y: cursorYSpring,
-        }}
-      >
-        <motion.div
-          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent/50"
-          animate={{
-            width: isHovering ? 100 : isMagnetic ? 70 : 50,
-            height: isHovering ? 100 : isMagnetic ? 70 : 50,
-            opacity: isHovering ? 0.8 : isMagnetic ? 0.6 : 0,
-            borderWidth: isHovering ? 2 : 1,
-          }}
-          transition={{ type: "spring", damping: 20, stiffness: 150 }}
-        />
-      </motion.div>
+      {/* Click ripple effect */}
+      <AnimatePresence>
+        {isClicking && (
+          <motion.div
+            className="fixed pointer-events-none z-[9998]"
+            initial={{ scale: 0.5, opacity: 0.8 }}
+            animate={{ scale: 2, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            style={{
+              x: cursorXSpring,
+              y: cursorYSpring,
+              left: 0,
+              top: 0,
+            }}
+          >
+            <div 
+              className="w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Hide default cursor */}
+      {/* Hide default cursor globally */}
       <style>{`
-        * {
+        *, *::before, *::after {
+          cursor: none !important;
+        }
+        html {
           cursor: none !important;
         }
       `}</style>
